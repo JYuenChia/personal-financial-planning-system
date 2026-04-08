@@ -2,12 +2,13 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 const validator = require("validator");
-const { z } = require("zod");
 
 const {
   createUser,
   findByEmail,
 } = require("../repositories/user.repository");
+const { loginSchema, refreshSchema } = require("../schemas/auth.schema");
+const { registerSchema } = require("../schemas/user.schema");
 const {
   signAccessToken,
   signRefreshToken,
@@ -16,27 +17,13 @@ const {
 
 const router = express.Router();
 
-const registerSchema = z.object({
-  email: z.string().trim().toLowerCase().email(),
-  password: z.string().min(8).max(128),
-  full_name: z.string().trim().min(1).max(100).optional(),
-});
-
-const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().email(),
-  password: z.string().min(1).max(128),
-});
-
-const refreshSchema = z.object({
-  refresh_token: z.string().min(1),
-});
-
 function toPublicUser(user) {
   if (!user) return null;
   return {
     id: user._id,
     email: user.email,
     full_name: user.full_name,
+    role: user.role || "user",
     created_at: user.created_at,
     updated_at: user.updated_at,
   };
@@ -73,7 +60,7 @@ router.post("/auth/register", async (req, res) => {
 
     return res.status(201).json({
       user: publicUser,
-      access_token: signAccessToken(publicUser.id),
+      access_token: signAccessToken(publicUser.id, publicUser.role),
       refresh_token: signRefreshToken(publicUser.id),
     });
   } catch (error) {
@@ -105,7 +92,7 @@ router.post("/auth/login", async (req, res) => {
 
     return res.status(200).json({
       user: publicUser,
-      access_token: signAccessToken(publicUser.id),
+      access_token: signAccessToken(publicUser.id, publicUser.role),
       refresh_token: signRefreshToken(publicUser.id),
     });
   } catch (error) {
@@ -118,7 +105,7 @@ router.post("/auth/logout", (req, res) => {
   return res.status(200).json({ status: "logged_out" });
 });
 
-router.post("/auth/refresh", (req, res) => {
+router.post("/auth/refresh", async (req, res) => {
   const parsed = refreshSchema.safeParse(req.body);
 
   if (!parsed.success) {
@@ -132,8 +119,14 @@ router.post("/auth/refresh", (req, res) => {
       return res.status(401).json({ error: "Invalid refresh token" });
     }
 
+    const user = await findById(payload.sub);
+
+    if (!user) {
+      return res.status(401).json({ error: "Invalid refresh token" });
+    }
+
     return res.status(200).json({
-      access_token: signAccessToken(payload.sub),
+      access_token: signAccessToken(user._id, user.role || "user"),
     });
   } catch (error) {
     return res.status(401).json({ error: "Invalid or expired refresh token" });
