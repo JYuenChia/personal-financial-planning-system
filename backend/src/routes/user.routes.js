@@ -1,7 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
-const { z } = require("zod");
 
 const { requireAuth } = require("../middleware/auth.middleware");
 const {
@@ -11,18 +10,12 @@ const {
   updateProfile,
   deleteUser,
 } = require("../repositories/user.repository");
+const {
+  updatePasswordSchema,
+  updateProfileSchema,
+} = require("../schemas/user.schema");
 
 const router = express.Router();
-
-const updateProfileSchema = z.object({
-  email: z.string().trim().toLowerCase().email().optional(),
-  full_name: z.string().trim().min(1).max(100).optional(),
-});
-
-const updatePasswordSchema = z.object({
-  current_password: z.string().min(1).max(128),
-  new_password: z.string().min(8).max(128),
-});
 
 function toPublicUser(user) {
   if (!user) return null;
@@ -30,6 +23,7 @@ function toPublicUser(user) {
     id: user._id,
     email: user.email,
     full_name: user.full_name,
+    role: user.role || "user",
     created_at: user.created_at,
     updated_at: user.updated_at,
   };

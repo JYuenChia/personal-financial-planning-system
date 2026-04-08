@@ -1,5 +1,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
+const { userSchema } = require("./schemas/user.schema");
+const { goalSchema } = require("./schemas/goal.schema");
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -10,37 +12,8 @@ if (!MONGODB_URI || MONGODB_URI === "") {
   process.exit(1);
 }
 
-const userSchema = new mongoose.Schema(
-  {
-    _id: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
-    password_hash: {
-      type: String,
-      required: true,
-    },
-    full_name: {
-      type: String,
-      default: null,
-    },
-  },
-  {
-    timestamps: {
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-    },
-  }
-);
-
 const User = mongoose.model("User", userSchema);
+const Goal = mongoose.model("Goal", goalSchema);
 
 async function connectDB() {
   try {
@@ -59,5 +32,6 @@ async function connectDB() {
 module.exports = {
   connectDB,
   User,
+  Goal,
   mongoose,
 };
