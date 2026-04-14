@@ -87,3 +87,10 @@ footer {
   border-radius: 0.5rem;
   background-color: rgba(120, 179, 206, 0.18);
 }
+
+/* Custom Alert Styling for smaller padding */
+.alert {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+}
