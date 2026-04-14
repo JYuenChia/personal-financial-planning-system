@@ -125,6 +125,15 @@
             <li><a class="dropdown-item" href="#" data-filter-priority="Want"><span class="badge bg-info text-dark me-2">!</span>Want</a></li>
           </ul>
         </div>
+
+        <div class="vr mx-1"></div>
+
+        <!-- Date Filter (Outline Wrapper Style) -->
+        <div class="px-3 py-1 rounded-pill d-flex align-items-center gap-2" style="border: 1px solid #6c757d; background: transparent;">
+          <i class="bi bi-calendar-event text-secondary"></i>
+          <span class="small fw-bold text-uppercase text-secondary d-none d-sm-inline" style="font-size: 0.65rem; pointer-events: none;">Before:</span>
+          <input type="date" id="dateFilter" class="border-0 bg-transparent text-secondary small fw-bold" style="outline: none; cursor: pointer; font-size: 0.8rem; height: 1.5rem;">
+        </div>
       </div>
 
       <!-- Goals Grid -->
@@ -190,11 +199,11 @@
 
               <div class="row mb-4">
                 <div class="col-6">
-                  <label class="form-label small fw-bold text-muted text-uppercase">4. Saved ($)</label>
+                  <label class="form-label small fw-bold text-muted text-uppercase">4. Saved (RM)</label>
                   <input type="number" id="gSaved" class="form-control" value="0" min="0">
                 </div>
                 <div class="col-6">
-                  <label class="form-label small fw-bold text-muted text-uppercase">Target ($)</label>
+                  <label class="form-label small fw-bold text-muted text-uppercase">Target (RM)</label>
                   <input type="number" id="gTarget" class="form-control" placeholder="Target" required>
                 </div>
               </div>
@@ -203,7 +212,7 @@
               <div class="p-3 bg-secondary bg-opacity-10 rounded-4 mb-4" id="monthlyResult">
                 <div class="d-flex justify-content-between align-items-center">
                   <span class="text-muted small fw-bold"><i class="bi bi-calculator me-2"></i>Estimated Monthly Savings:</span>
-                  <span class="fs-5 fw-bold text-primary" id="calcDisplay">$0.00</span>
+                  <span class="fs-5 fw-bold text-primary" id="calcDisplay">RM 0.00</span>
                 </div>
               </div>
 
@@ -267,7 +276,7 @@
             const progress = Math.min(100, Math.round((goal.saved / goal.target) * 100));
             
             return `
-              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-term="${goal.term}" data-priority="${goal.priority}">
+              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-term="${goal.term}" data-priority="${goal.priority}" data-date="${goal.date}">
                 <div class="card h-100 feature-card border-start border-4 border-${pColor}">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
@@ -282,7 +291,7 @@
                     </div>
                     
                     <div class="d-flex justify-content-between small fw-bold mb-3">
-                      <span>$${goal.saved.toLocaleString()} / $${goal.target.toLocaleString()}</span>
+                      <span>RM ${goal.saved.toLocaleString()} / RM ${goal.target.toLocaleString()}</span>
                       <span class="text-primary">${progress}%</span>
                     </div>
 
@@ -293,7 +302,7 @@
                       </div>
                       <div class="d-flex justify-content-between text-accent fw-bold">
                         <span>Monthly Target:</span>
-                        <span>$${goal.monthly}/mo</span>
+                        <span>RM ${goal.monthly}/mo</span>
                       </div>
                     </div>
 
@@ -317,28 +326,33 @@
         const filterItems = document.querySelectorAll('.dropdown-item');
         const termBtn = document.getElementById('termDropdownBtn');
         const priorityBtn = document.getElementById('priorityDropdownBtn');
+        const dateFilterInput = document.getElementById('dateFilter');
 
         let activeTerm = null;
         let activePriority = null;
 
         function filterGoals() {
           const searchTerm = searchInput.value.toLowerCase();
+          const dateLimit = dateFilterInput.value ? new Date(dateFilterInput.value) : null;
           const cards = document.querySelectorAll('.goal-card');
           
           cards.forEach(card => {
             const title = card.querySelector('.card-title').innerText.toLowerCase();
             const term = card.getAttribute('data-term');
             const priority = card.getAttribute('data-priority');
+            const goalDateStr = card.getAttribute('data-date');
+            const goalDate = new Date(goalDateStr);
             
             let matchesSearch = title.includes(searchTerm);
             let matchesTerm = !activeTerm || term === activeTerm;
             let matchesPriority = !activePriority || priority === activePriority;
+            let matchesDate = !dateLimit || goalDate <= dateLimit;
 
-            card.style.display = (matchesSearch && matchesTerm && matchesPriority) ? 'block' : 'none';
+            card.style.display = (matchesSearch && matchesTerm && matchesPriority && matchesDate) ? 'block' : 'none';
           });
 
           // Update "All Goals" active state: Solid when no filters active, Outline when filtered
-          if (!activeTerm && !activePriority && searchInput.value === '') {
+          if (!activeTerm && !activePriority && searchInput.value === '' && !dateFilterInput.value) {
             resetBtn.className = 'btn btn-primary btn-sm rounded-pill';
             resetBtn.blur();
           } else {
@@ -347,6 +361,7 @@
         }
 
         searchInput.addEventListener('input', filterGoals);
+        dateFilterInput.addEventListener('change', filterGoals);
 
         filterItems.forEach(item => {
           item.addEventListener('click', (e) => {
@@ -393,6 +408,7 @@
           priorityBtn.classList.add('btn-outline-secondary');
           
           searchInput.value = '';
+          dateFilterInput.value = '';
           filterGoals();
         });
 
@@ -411,7 +427,7 @@
           const dateVal = gDate.value;
 
           if (!dateVal || target <= saved) {
-            calcDisplay.innerText = "$0.00";
+            calcDisplay.innerText = "RM 0.00";
             return;
           }
 
@@ -427,7 +443,7 @@
 
           const needed = target - saved;
           const monthly = needed / diffMonths;
-          calcDisplay.innerText = `$${monthly.toFixed(2)}/mo`;
+          calcDisplay.innerText = `RM ${monthly.toFixed(2)}/mo`;
         }
 
         [gSaved, gTarget, gDate].forEach(el => el.addEventListener('input', calculateMonthly));
