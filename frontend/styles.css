@@ -1,16 +1,49 @@
 :root {
   color-scheme: light;
-  --palette-primary: #78b3ce;
-  --palette-secondary: #c9e6f0;
-  --palette-surface: #fbf8ef;
-  --palette-accent: #f96e2a;
+  --palette-primary: #81A6C6;
+  --palette-secondary: #AACDDC;
+  --palette-surface: #f7f1e9;
+  --palette-accent: #dfdcd7;
   --palette-text: #1f3f56;
 }
 
 body {
-  background: linear-gradient(180deg, var(--palette-surface) 0%, #ffffff 100%);
+  background: var(--palette-surface);
   color: var(--palette-text);
   min-height: 100vh;
+}
+
+.bg-primary {
+  background-color: var(--palette-primary) !important;
+}
+
+.btn-primary {
+  background-color: var(--palette-primary) !important;
+  border-color: var(--palette-primary) !important;
+  color: white !important;
+}
+
+.btn-primary:hover {
+  background-color: #6a8ba8 !important;
+  border-color: #6a8ba8 !important;
+}
+
+.btn-outline-primary {
+  color: var(--palette-primary) !important;
+  border-color: var(--palette-primary) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--palette-primary) !important;
+  color: white !important;
+}
+
+.text-primary {
+  color: var(--palette-primary) !important;
+}
+
+.text-accent {
+  color: var(--palette-accent) !important;
 }
 
 .navbar {
@@ -88,7 +121,6 @@ footer {
   background-color: rgba(120, 179, 206, 0.18);
 }
 
-/* Custom Alert Styling for smaller padding */
 .alert {
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
