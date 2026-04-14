@@ -191,12 +191,8 @@
             const result = await response.json();
 
             if (response.ok) {
-              // Store token so the user is logged in immediately
-              if (result.access_token) {
-                localStorage.setItem("token", result.access_token);
-              }
-              messageDiv.innerHTML = '<div class="alert alert-success">Registration successful! Redirecting home...</div>';
-              setTimeout(() => (window.location.href = "index.html"), 2000);
+              messageDiv.innerHTML = '<div class="alert alert-success">Registration successful! Redirecting to login...</div>';
+              setTimeout(() => (window.location.href = "login.html"), 2000);
             } else {
               messageDiv.innerHTML = `<div class="alert alert-danger">${result.error || "Registration failed. Please try again."}</div>`;
               submitBtn.disabled = false;
