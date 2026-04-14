@@ -129,83 +129,7 @@
 
       <!-- Goals Grid -->
       <div class="row" id="goalsGrid">
-        <!-- Sample Card 1: Emergency Fund (Critical/Short-term) -->
-        <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-term="Short-term" data-priority="Critical" data-category="Basic">
-          <div class="card h-100 feature-card">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-danger">Critical</span>
-                <span class="badge bg-success">Short-term</span>
-              </div>
-              <h5 class="card-title fw-bold">Emergency Fund</h5>
-              <p class="card-text text-muted small">Building 6 months of expenses for safety.</p>
-              
-              <div class="progress mb-2" style="height: 10px; border-radius: 5px;">
-                <div class="progress-bar bg-success" role="progressbar" style="width: 80%"></div>
-              </div>
-              
-              <div class="d-flex justify-content-between small fw-bold mb-3">
-                <span>$8,000 / $10,000</span>
-                <span class="text-primary">80%</span>
-              </div>
-
-              <div class="p-2 bg-light rounded-3 mb-3 small">
-                <div class="d-flex justify-content-between mb-1">
-                  <span>Target Date:</span>
-                  <span class="fw-bold">Dec 2026</span>
-                </div>
-                <div class="d-flex justify-content-between text-accent fw-bold">
-                  <span>Monthly Target:</span>
-                  <span>$250/mo</span>
-                </div>
-              </div>
-
-              <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary btn-sm flex-grow-1">Update Progress</button>
-                <button class="btn btn-light btn-sm text-danger"><i class="bi bi-trash"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sample Card 2: New Home (Need/Long-term) -->
-        <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-term="Long-term" data-priority="Need" data-category="Basic">
-          <div class="card h-100 feature-card border-start border-4 border-warning">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-warning text-dark">Need</span>
-                <span class="badge bg-dark">Long-term</span>
-              </div>
-              <h5 class="card-title fw-bold text-truncate">New Home Downpayment</h5>
-              <p class="card-text text-muted small">Saving for a first family home.</p>
-              
-              <div class="progress mb-2" style="height: 10px; border-radius: 5px;">
-                <div class="progress-bar bg-primary" role="progressbar" style="width: 30%"></div>
-              </div>
-              
-              <div class="d-flex justify-content-between small fw-bold mb-3">
-                <span>$15,000 / $50,000</span>
-                <span class="text-primary">30%</span>
-              </div>
-
-              <div class="p-2 bg-light rounded-3 mb-3 small">
-                <div class="d-flex justify-content-between mb-1">
-                  <span>Target Date:</span>
-                  <span class="fw-bold">June 2032</span>
-                </div>
-                <div class="d-flex justify-content-between text-accent fw-bold">
-                  <span>Monthly Target:</span>
-                  <span>$486/mo</span>
-                </div>
-              </div>
-
-              <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary btn-sm flex-grow-1">Update Progress</button>
-                <button class="btn btn-light btn-sm text-danger"><i class="bi bi-trash"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Goals will be injected here via JavaScript -->
       </div>
     </main>
 
@@ -311,19 +235,95 @@
       document.addEventListener('DOMContentLoaded', () => {
         checkAuthState();
         
+        // --- DATA MOCKING (Replace with fetch('/api/goals') later) ---
+        const mockGoals = [
+          { name: "Emergency Fund", term: "Short-term", priority: "Critical", category: "Basic", description: "Building 6 months of expenses for safety.", saved: 8000, target: 10000, date: "2026-12-31", monthly: 250 },
+          { name: "New Home Downpayment", term: "Long-term", priority: "Need", category: "Basic", description: "Saving for a first family home.", saved: 15000, target: 50000, date: "2032-06-30", monthly: 486 }
+        ];
+
+        function getPriorityColor(priority) {
+          switch (priority) {
+            case 'Critical': return 'danger';
+            case 'Need': return 'warning';
+            case 'Want': return 'info';
+            default: return 'secondary';
+          }
+        }
+
+        function getTermColor(term) {
+          switch (term) {
+            case 'Short-term': return 'success';
+            case 'Mid-term': return 'primary';
+            case 'Long-term': return 'dark';
+            default: return 'secondary';
+          }
+        }
+
+        function renderGoals(goalsArray) {
+          const grid = document.getElementById('goalsGrid');
+          grid.innerHTML = goalsArray.map(goal => {
+            const pColor = getPriorityColor(goal.priority);
+            const tColor = getTermColor(goal.term);
+            const progress = Math.min(100, Math.round((goal.saved / goal.target) * 100));
+            
+            return `
+              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-term="${goal.term}" data-priority="${goal.priority}">
+                <div class="card h-100 feature-card border-start border-4 border-${pColor}">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge bg-${pColor} ${pColor === 'warning' || pColor === 'info' ? 'text-dark' : ''}">${goal.priority}</span>
+                      <span class="badge bg-${tColor}">${goal.term}</span>
+                    </div>
+                    <h5 class="card-title fw-bold text-truncate">${goal.name}</h5>
+                    <p class="card-text text-muted small">${goal.description}</p>
+                    
+                    <div class="progress mb-2" style="height: 10px; border-radius: 5px;">
+                      <div class="progress-bar bg-${progress >= 100 ? 'success' : 'primary'}" role="progressbar" style="width: ${progress}%"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between small fw-bold mb-3">
+                      <span>$${goal.saved.toLocaleString()} / $${goal.target.toLocaleString()}</span>
+                      <span class="text-primary">${progress}%</span>
+                    </div>
+
+                    <div class="p-2 bg-light rounded-3 mb-3 small">
+                      <div class="d-flex justify-content-between mb-1">
+                        <span>Target Date:</span>
+                        <span class="fw-bold">${new Date(goal.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                      </div>
+                      <div class="d-flex justify-content-between text-accent fw-bold">
+                        <span>Monthly Target:</span>
+                        <span>$${goal.monthly}/mo</span>
+                      </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-outline-primary btn-sm flex-grow-1">Update Progress</button>
+                      <button class="btn btn-light btn-sm text-danger"><i class="bi bi-trash"></i></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // Initial render
+        renderGoals(mockGoals);
+
         // --- SEARCH & FILTER LOGIC ---
         const searchInput = document.getElementById('goalSearch');
         const resetBtn = document.getElementById('resetFilters');
         const filterItems = document.querySelectorAll('.dropdown-item');
         const termBtn = document.getElementById('termDropdownBtn');
         const priorityBtn = document.getElementById('priorityDropdownBtn');
-        const cards = document.querySelectorAll('.goal-card');
 
         let activeTerm = null;
         let activePriority = null;
 
         function filterGoals() {
           const searchTerm = searchInput.value.toLowerCase();
+          const cards = document.querySelectorAll('.goal-card');
           
           cards.forEach(card => {
             const title = card.querySelector('.card-title').innerText.toLowerCase();
@@ -395,6 +395,9 @@
           searchInput.value = '';
           filterGoals();
         });
+
+        // Re-calculate after rendering
+        filterGoals();
 
         // --- CALCULATOR LOGIC (Step 5) ---
         const gSaved = document.getElementById('gSaved');
