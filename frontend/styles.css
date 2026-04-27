@@ -126,3 +126,24 @@ footer {
   font-size: 0.875rem;
   border-radius: 0.5rem;
 }
+
+/* Custom Styles for the Slidable Highlights */
+.carousel-control-prev, .carousel-control-next {
+    width: 40px; /* Slimmer control area */
+    filter: invert(100%) grayscale(100%); /* Makes white arrows dark for light themes */
+}
+
+.carousel-control-prev {
+    left: -50px; /* Moves arrow outside the card area */
+}
+
+.carousel-control-next {
+    right: -50px; /* Moves arrow outside the card area */
+}
+
+/* Ensure the carousel doesn't overflow on small screens */
+@media (max-width: 768px) {
+    .carousel-control-prev, .carousel-control-next {
+        display: none; /* Hide arrows on mobile for better touch swiping */
+    }
+}
