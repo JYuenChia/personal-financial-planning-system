@@ -63,26 +63,63 @@
   <main class="container py-5">
     <h1 class="mb-4">Market Insights Dashboard</h1>
     
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card feature-card p-4 text-center">
-                <h6 class="text-accent text-uppercase small fw-bold">S&P 500 Index</h6>
-                <div class="h3 m-0 fw-bold text-primary">+1.24%</div>
+    <div id="assetCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card feature-card p-4 text-center">
+                        <h6 class="text-accent text-uppercase small fw-bold">S&P 500 Index</h6>
+                        <div class="h3 m-0 fw-bold text-primary">+1.24%</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card p-4 text-center">
+                        <h6 class="text-accent text-uppercase small fw-bold">Bitcoin (BTC)</h6>
+                        <div class="h3 m-0 fw-bold text-primary">$65,432.10</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card p-4 text-center">
+                        <h6 class="text-accent text-uppercase small fw-bold">Gold (XAU)</h6>
+                        <div class="h3 m-0 fw-bold text-primary">2,342.50</div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card feature-card p-4 text-center">
-                <h6 class="text-accent text-uppercase small fw-bold">Bitcoin (BTC)</h6>
-                <div class="h3 m-0 fw-bold text-primary">$65,432.10</div>
+        <div class="carousel-item">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card feature-card p-4 text-center">
+                        <h6 class="text-accent text-uppercase small fw-bold">Ethereum (ETH)</h6>
+                        <div class="h3 m-0 fw-bold text-primary">$3,450.00</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card p-4 text-center">
+                        <h6 class="text-accent text-uppercase small fw-bold">NASDAQ</h6>
+                        <div class="h3 m-0 fw-bold text-primary">+0.85%</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card p-4 text-center">
+                        <h6 class="text-accent text-uppercase small fw-bold">Apple (AAPL)</h6>
+                        <div class="h3 m-0 fw-bold text-primary">$185.20</div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card feature-card p-4 text-center">
-                <h6 class="text-accent text-uppercase small fw-bold">Gold (XAU)</h6>
-                <div class="h3 m-0 fw-bold text-primary">2,342.50</div>
-            </div>
-        </div>
-    </div>
+      </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#assetCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon custom-carousel-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#assetCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon custom-carousel-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+  </div>
 
     <div class="row">
         <div class="col-lg-8 mb-4">
@@ -90,8 +127,8 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold m-0">Market Trend Visualization</h5>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary active">Stocks</button>
-                        <button class="btn btn-outline-primary">Crypto</button>
+                        <button class="btn btn-outline-primary active" id="btn-stocks">Stocks</button>
+                        <button class="btn btn-outline-primary" id="btn-crypto">Crypto</button>
                     </div>
                 </div>
                 <div style="position: relative; height:350px;">
@@ -137,70 +174,67 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
-      // 1. Initialize the Chart using your team's Primary Blue
-      function initChart() {
-          const ctx = document.getElementById('marketChart');
-          if (!ctx) return;
-          
-          // Get the color from your team's CSS variable
-          const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--palette-primary').trim();
+    // 1. Chart Initialization Logic [cite: 31, 35]
+    let marketChart;
+    function initChart() {
+        const ctx = document.getElementById('marketChart');
+        if (!ctx) return;
+        
+        // Pull the primary color directly from your team's style.css variables
+        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--palette-primary').trim() || '#81A6C6';
 
-          new Chart(ctx, {
-              type: 'line',
-              data: {
-                  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                  datasets: [{
-                      label: 'Market Performance',
-                      data: [4200, 4250, 4100, 4350, 4400, 4380, 4500],
-                      borderColor: primaryColor,
-                      backgroundColor: primaryColor + '33', // Adding transparency (33 is hex for 20%)
-                      fill: true,
-                      tension: 0.4,
-                      pointRadius: 4
-                  }]
-              },
-              options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: { legend: { display: false } },
-                  scales: {
-                      y: { grid: { display: false } },
-                      x: { grid: { display: false } }
-                  }
-              }
-          });
-      }
+        marketChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Market Value',
+                    data: [4200, 4250, 4100, 4350, 4400, 4380, 4500],
+                    borderColor: primaryColor,
+                    backgroundColor: primaryColor + '33', // 20% opacity fill
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
 
-      // 2. Load the News Feed
-      function loadNews() {
-          const newsContainer = document.getElementById('news-feed');
-          const mockNews = [
-              { title: "Market Rallies as Inflation Cools", time: "1h ago" },
-              { title: "Tech Giants Announce Q1 Earnings", time: "3h ago" },
-              { title: "New Investment Strategies for 2025", time: "5h ago" },
-              { title: "Cryptocurrency Regulations Update", time: "1d ago" }
-          ];
+    // 2. Mock News Feed Logic [cite: 38, 56]
+    function loadNews() {
+        const newsContainer = document.getElementById('news-feed');
+        const mockNews = [
+            { title: "Market Rallies as Inflation Cools", time: "1h ago" },
+            { title: "Tech Giants Announce Q1 Earnings", time: "3h ago" },
+            { title: "New Investment Strategies for 2025", time: "5h ago" },
+            { title: "Cryptocurrency Regulations Update", time: "1d ago" }
+        ];
 
-          newsContainer.innerHTML = mockNews.map(item => `
-              <a href="#" class="list-group-item list-group-item-action border-0 py-3">
-                  <h6 class="mb-1 fw-bold" style="color: var(--palette-text);">${item.title}</h6>
-                  <small class="text-accent">${item.time}</small>
-              </a>
-          `).join('');
-      }
+        newsContainer.innerHTML = mockNews.map(item => `
+            <a href="#" class="list-group-item list-group-item-action border-0 py-3">
+                <h6 class="mb-1 fw-bold" style="color: var(--palette-text);">${item.title}</h6>
+                <small class="text-accent">${item.time}</small>
+            </a>
+        `).join('');
+    }
 
-      // 3. Keep your teammate's Auth check and add your functions
-      document.addEventListener('DOMContentLoaded', () => {
-          // Run the teammate's auth function first
-          if (typeof checkAuthState === "function") {
-              checkAuthState();
-          }
-          
-          // Run your module functions
-          initChart();
-          loadNews();
-      });
-  </script>
+    // 3. Coordinate with Team's Auth & Load Dashboard [cite: 22]
+    document.addEventListener('DOMContentLoaded', () => {
+        // Ensure teammate's auth check runs if it exists
+        if (typeof checkAuthState === "function") {
+            checkAuthState();
+        }
+        
+        initChart();
+        loadNews();
+    });
+    </script>
   </body>
 </html>
