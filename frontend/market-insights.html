@@ -59,21 +59,60 @@
         </div>
       </div>
     </nav>
-
-    <main class="container py-5">
-      <h1 class="mb-4">Market Insights Dashboard</h1>
-      <div class="card p-4">
-        <p class="text-muted">
-          This page is reserved for market news, trends, and visual dashboard
-          data.
-        </p>
-        <div class="placeholder-glow">
-          <div class="placeholder col-12 mb-3"></div>
-          <div class="placeholder col-12 mb-3"></div>
-          <div class="placeholder col-12 mb-3"></div>
+    
+  <main class="container py-5">
+    <h1 class="mb-4">Market Insights Dashboard</h1>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card feature-card p-4 text-center">
+                <h6 class="text-accent text-uppercase small fw-bold">S&P 500 Index</h6>
+                <div class="h3 m-0 fw-bold text-primary">+1.24%</div>
+            </div>
         </div>
-      </div>
-    </main>
+        <div class="col-md-4">
+            <div class="card feature-card p-4 text-center">
+                <h6 class="text-accent text-uppercase small fw-bold">Bitcoin (BTC)</h6>
+                <div class="h3 m-0 fw-bold text-primary">$65,432.10</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card p-4 text-center">
+                <h6 class="text-accent text-uppercase small fw-bold">Gold (XAU)</h6>
+                <div class="h3 m-0 fw-bold text-primary">2,342.50</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card feature-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0">Market Trend Visualization</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary active">Stocks</button>
+                        <button class="btn btn-outline-primary">Crypto</button>
+                    </div>
+                </div>
+                <div style="position: relative; height:350px;">
+                    <canvas id="marketChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card feature-card h-100 overflow-hidden">
+                <div class="card-header bg-primary text-white p-3 border-0">
+                    <h5 class="m-0 fs-6 fw-bold"><i class="bi bi-newspaper me-2"></i>Financial News Feed</h5>
+                </div>
+                <div class="list-group list-group-flush overflow-auto" id="news-feed" style="max-height: 400px;">
+                    </div>
+            </div>
+        </div>
+    </div>
+  </main>
+
+    
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -95,5 +134,73 @@
 
       document.addEventListener('DOMContentLoaded', checkAuthState);
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+      // 1. Initialize the Chart using your team's Primary Blue
+      function initChart() {
+          const ctx = document.getElementById('marketChart');
+          if (!ctx) return;
+          
+          // Get the color from your team's CSS variable
+          const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--palette-primary').trim();
+
+          new Chart(ctx, {
+              type: 'line',
+              data: {
+                  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                  datasets: [{
+                      label: 'Market Performance',
+                      data: [4200, 4250, 4100, 4350, 4400, 4380, 4500],
+                      borderColor: primaryColor,
+                      backgroundColor: primaryColor + '33', // Adding transparency (33 is hex for 20%)
+                      fill: true,
+                      tension: 0.4,
+                      pointRadius: 4
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                      y: { grid: { display: false } },
+                      x: { grid: { display: false } }
+                  }
+              }
+          });
+      }
+
+      // 2. Load the News Feed
+      function loadNews() {
+          const newsContainer = document.getElementById('news-feed');
+          const mockNews = [
+              { title: "Market Rallies as Inflation Cools", time: "1h ago" },
+              { title: "Tech Giants Announce Q1 Earnings", time: "3h ago" },
+              { title: "New Investment Strategies for 2025", time: "5h ago" },
+              { title: "Cryptocurrency Regulations Update", time: "1d ago" }
+          ];
+
+          newsContainer.innerHTML = mockNews.map(item => `
+              <a href="#" class="list-group-item list-group-item-action border-0 py-3">
+                  <h6 class="mb-1 fw-bold" style="color: var(--palette-text);">${item.title}</h6>
+                  <small class="text-accent">${item.time}</small>
+              </a>
+          `).join('');
+      }
+
+      // 3. Keep your teammate's Auth check and add your functions
+      document.addEventListener('DOMContentLoaded', () => {
+          // Run the teammate's auth function first
+          if (typeof checkAuthState === "function") {
+              checkAuthState();
+          }
+          
+          // Run your module functions
+          initChart();
+          loadNews();
+      });
+  </script>
   </body>
 </html>
