@@ -222,64 +222,111 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
-    // 1. Chart Initialization Logic [cite: 31, 35]
+    // ==================== API INTEGRATION ====================
     let marketChart;
-    function initChart() {
-        const ctx = document.getElementById('marketChart');
-        if (!ctx) return;
-        
-        // Pull the primary color directly from your team's style.css variables
-        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--palette-primary').trim() || '#81A6C6';
 
-        marketChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Market Value',
-                    data: [4200, 4250, 4100, 4350, 4400, 4380, 4500],
-                    borderColor: primaryColor,
-                    backgroundColor: primaryColor + '33', // 20% opacity fill
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-            }
-        });
+    function initChart(data = null) {
+      const ctx = document.getElementById('marketChart');
+      if (!ctx) return;
+      
+      const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--palette-primary').trim() || '#81A6C6';
+
+      // Use real data if provided, otherwise use fallback
+      const chartData = data || {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        values: [4200, 4250, 4100, 4350, 4400, 4380, 4500]
+      };
+
+      marketChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartData.labels,
+          datasets: [{
+            label: 'Market Value',
+            data: chartData.values,
+            borderColor: primaryColor,
+            backgroundColor: primaryColor + '33',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
     }
 
-    // 2. Mock News Feed Logic [cite: 38, 56]
-    function loadNews() {
-        const newsContainer = document.getElementById('news-feed');
+    // Load market news from API
+    async function loadNews() {
+      const newsContainer = document.getElementById('news-feed');
+      
+      try {
+        showLoading(true);
+        const response = await apiClient.getMarketNews();
+        const news = response.news || [];
+
+        if (news.length === 0) {
+          throw new Error('No news data received');
+        }
+
+        newsContainer.innerHTML = news.map(item => `
+          <a href="${item.url || '#'}" class="list-group-item list-group-item-action border-0 py-3" ${item.url ? 'target="_blank"' : ''}>
+            <h6 class="mb-1 fw-bold" style="color: var(--palette-text);">${item.title}</h6>
+            <small class="text-accent">${item.source || 'Financial News'}</small>
+          </a>
+        `).join('');
+      } catch (error) {
+        console.warn('Error loading news, using fallback:', error.message);
+        // Fallback to mock data
         const mockNews = [
-            { title: "Market Rallies as Inflation Cools", time: "1h ago" },
-            { title: "Tech Giants Announce Q1 Earnings", time: "3h ago" },
-            { title: "New Investment Strategies for 2025", time: "5h ago" },
-            { title: "Cryptocurrency Regulations Update", time: "1d ago" }
+          { title: "Market Rallies as Inflation Cools", source: "Reuters", url: null },
+          { title: "Tech Giants Announce Q1 Earnings", source: "Bloomberg", url: null },
+          { title: "New Investment Strategies for 2025", source: "Forbes", url: null },
+          { title: "Cryptocurrency Regulations Update", source: "CoinDesk", url: null }
         ];
 
         newsContainer.innerHTML = mockNews.map(item => `
-            <a href="#" class="list-group-item list-group-item-action border-0 py-3">
-                <h6 class="mb-1 fw-bold" style="color: var(--palette-text);">${item.title}</h6>
-                <small class="text-accent">${item.time}</small>
-            </a>
+          <a href="#" class="list-group-item list-group-item-action border-0 py-3">
+            <h6 class="mb-1 fw-bold" style="color: var(--palette-text);">${item.title}</h6>
+            <small class="text-accent">${item.source}</small>
+          </a>
         `).join('');
+      } finally {
+        showLoading(false);
+      }
     }
 
-    // 3. Coordinate with Team's Auth & Load Dashboard [cite: 22]
-    document.addEventListener('DOMContentLoaded', () => {
-        // Ensure teammate's auth check runs if it exists
-        if (typeof checkAuthState === "function") {
-            checkAuthState();
+    // Load market trends and update chart
+    async function loadMarketTrends() {
+      try {
+        const response = await apiClient.getMarketTrends();
+        const trends = response.trends || null;
+
+        if (trends && trends.labels && trends.values) {
+          initChart({
+            labels: trends.labels,
+            values: trends.values
+          });
+        } else {
+          throw new Error('Invalid trends data');
         }
-        
-        initChart();
-        loadNews();
+      } catch (error) {
+        console.warn('Error loading trends, using fallback:', error.message);
+        initChart(); // Use default/fallback data
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof checkAuthState === "function") {
+        checkAuthState();
+      }
+      
+      loadMarketTrends();
+      loadNews();
     });
-    </script>
+  </script>
   </body>
 </html>

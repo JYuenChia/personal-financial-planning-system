@@ -62,16 +62,51 @@
 
     <main class="container py-5">
       <h1 class="mb-4">Investment Strategies Recommendation</h1>
-      <div class="card p-4">
-        <p class="text-muted">
-          This page is reserved for recommending investment strategies to meet
-          user goals.
-        </p>
+      
+      <!-- Goal Selector -->
+      <div class="card mb-4 p-4">
+        <h5 class="mb-3">Select a Goal for Recommendations</h5>
+        <div class="row align-items-end">
+          <div class="col-md-6">
+            <select id="goalSelector" class="form-select">
+              <option value="">-- Choose a goal --</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <button id="loadRecommendationsBtn" class="btn btn-primary" disabled>
+              <i class="bi bi-lightning-fill me-2"></i>Get Recommendations
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="card p-4">
         <div class="placeholder-glow">
           <div class="placeholder col-12 mb-3"></div>
           <div class="placeholder col-12 mb-3"></div>
+          <div class="placeholder col-12"></div>
         </div>
       </div>
+
+      <!-- Recommendations Display -->
+      <div id="recommendationsContainer" style="display: none;">
+        <div class="mb-4">
+          <h3 class="h5 mb-3">Recommendations for <span id="selectedGoalName">Goal</span></h3>
+          <div id="recommendationsList" class="row">
+            <!-- Recommendations will be inserted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- No Recommendations Message -->
+      <div id="noRecommendations" class="alert alert-info" style="display: none;">
+        <i class="bi bi-info-circle me-2"></i>
+        Select a goal from the dropdown above to view personalized investment recommendations.
+      </div>
+
+      <!-- Error Alert -->
+      <div id="errorAlert" class="alert alert-danger" style="display: none;"></div>
     </main>
 
     <footer class="py-5">
@@ -123,7 +158,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="api-client.js"></script>
     <script>
-      // Function to handle Navbar state
       function checkAuthState() {
         const token = localStorage.getItem('token');
         const authOnlyElements = document.querySelectorAll('.auth-only');
@@ -139,7 +173,200 @@
         }
       }
 
-      document.addEventListener('DOMContentLoaded', checkAuthState);
+      // ==================== RECOMMENDATIONS LOGIC ====================
+
+      let allGoals = [];
+
+      // Load user goals into selector
+      async function loadGoalsForSelector() {
+        try {
+          const response = await apiClient.getGoals();
+          allGoals = response.goals || [];
+
+          const selector = document.getElementById('goalSelector');
+          const loadBtn = document.getElementById('loadRecommendationsBtn');
+
+          if (allGoals.length === 0) {
+            selector.innerHTML = '<option value="">-- No goals found --</option>';
+            loadBtn.disabled = true;
+            document.getElementById('noRecommendations').style.display = 'block';
+            return;
+          }
+
+          selector.innerHTML = '<option value="">-- Choose a goal --</option>' +
+            allGoals.map(goal => 
+              `<option value="${goal.id}">${goal.title} (RM ${goal.target_amount.toLocaleString()})</option>`
+            ).join('');
+
+          selector.addEventListener('change', (e) => {
+            loadBtn.disabled = !e.target.value;
+          });
+        } catch (error) {
+          console.error('Error loading goals:', error);
+          document.getElementById('errorAlert').textContent = 'Error loading goals: ' + error.message;
+          document.getElementById('errorAlert').style.display = 'block';
+        }
+      }
+
+      // Load recommendations for selected goal
+      document.getElementById('loadRecommendationsBtn')?.addEventListener('click', async () => {
+        const goalId = document.getElementById('goalSelector').value;
+        if (!goalId) return;
+
+        const loadingState = document.getElementById('loadingState');
+        const recommendationsContainer = document.getElementById('recommendationsContainer');
+        const noRecommendations = document.getElementById('noRecommendations');
+        const errorAlert = document.getElementById('errorAlert');
+
+        try {
+          loadingState.style.display = 'block';
+          recommendationsContainer.style.display = 'none';
+          noRecommendations.style.display = 'none';
+          errorAlert.style.display = 'none';
+
+          // Find selected goal
+          const selectedGoal = allGoals.find(g => g.id === goalId);
+          document.getElementById('selectedGoalName').textContent = selectedGoal?.title || 'Goal';
+
+          // Fetch recommendations
+          const response = await apiClient.getRecommendations(goalId);
+          const recommendations = response.recommendations || [];
+
+          if (recommendations.length === 0) {
+            throw new Error('No recommendations available for this goal');
+          }
+
+          // Render recommendations
+          renderRecommendations(recommendations);
+          loadingState.style.display = 'none';
+          recommendationsContainer.style.display = 'block';
+        } catch (error) {
+          loadingState.style.display = 'none';
+          
+          // Show fallback recommendations if API fails
+          console.warn('Using fallback recommendations:', error.message);
+          const fallbackRecommendations = generateFallbackRecommendations();
+          renderRecommendations(fallbackRecommendations);
+          recommendationsContainer.style.display = 'block';
+        }
+      });
+
+      // Render recommendations
+      function renderRecommendations(recommendations) {
+        const container = document.getElementById('recommendationsList');
+        
+        container.innerHTML = recommendations.map((rec, index) => `
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 feature-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <h5 class="card-title">${rec.strategy || `Strategy ${index + 1}`}</h5>
+                  <span class="badge bg-primary">${rec.risk_level || 'Medium'}</span>
+                </div>
+                
+                <p class="card-text text-muted small mb-3">
+                  ${rec.description || 'Investment strategy recommendation'}
+                </p>
+
+                <div class="mb-3">
+                  <div class="small text-muted mb-1">Expected Return:</div>
+                  <div class="h6 fw-bold text-primary">${rec.expected_return || 'N/A'}</div>
+                </div>
+
+                <div class="mb-3">
+                  <div class="small text-muted mb-1">Allocation:</div>
+                  <div class="progress" style="height: 8px;">
+                    <div class="progress-bar" role="progressbar" style="width: ${rec.allocation || 100}%"></div>
+                  </div>
+                  <small class="text-muted">${rec.allocation || 100}%</small>
+                </div>
+
+                <div class="pt-2">
+                  <small class="text-muted">
+                    <i class="bi bi-lightbulb me-1"></i>
+                    ${rec.recommendation || 'Consider this strategy based on your goals'}
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Generate fallback recommendations based on goal characteristics
+      function generateFallbackRecommendations() {
+        const selectedGoalId = document.getElementById('goalSelector').value;
+        const selectedGoal = allGoals.find(g => g.id === selectedGoalId);
+
+        if (!selectedGoal) return [];
+
+        const timeframe = selectedGoal.target_date ? new Date(selectedGoal.target_date) - new Date() : 0;
+        const monthsUntilTarget = timeframe / (1000 * 60 * 60 * 24 * 30.44);
+
+        const recommendations = [];
+
+        if (monthsUntilTarget <= 12) {
+          // Short-term: conservative
+          recommendations.push(
+            {
+              strategy: 'High-Yield Savings',
+              risk_level: 'Low',
+              description: 'Keep funds in high-yield savings account for safety and liquidity',
+              expected_return: '3-5% APY',
+              allocation: 100,
+              recommendation: 'Best for short-term goals within 12 months'
+            }
+          );
+        } else if (monthsUntilTarget <= 60) {
+          // Mid-term: balanced
+          recommendations.push(
+            {
+              strategy: 'Balanced Portfolio',
+              risk_level: 'Medium',
+              description: '60% bonds, 40% stocks for steady growth',
+              expected_return: '5-7% annually',
+              allocation: 60,
+              recommendation: 'Good balance between growth and stability for 1-5 year goals'
+            },
+            {
+              strategy: 'Fixed Income Ladder',
+              risk_level: 'Low',
+              description: 'Ladder of bonds/CDs maturing before goal date',
+              expected_return: '4-6% annually',
+              allocation: 40,
+              recommendation: 'Ensures liquidity when you need the funds'
+            }
+          );
+        } else {
+          // Long-term: aggressive growth
+          recommendations.push(
+            {
+              strategy: 'Growth Stock Portfolio',
+              risk_level: 'High',
+              description: '70% stocks, 30% bonds for maximum growth potential',
+              expected_return: '8-10% annually',
+              allocation: 70,
+              recommendation: 'Maximum growth potential for long-term goals (5+ years)'
+            },
+            {
+              strategy: 'Diversified Index Funds',
+              risk_level: 'Medium',
+              description: 'Mix of US, international, and emerging markets',
+              expected_return: '6-8% annually',
+              allocation: 30,
+              recommendation: 'Reduces risk through broad market diversification'
+            }
+          );
+        }
+
+        return recommendations;
+      }
+
+      // Initialize
+      document.addEventListener('DOMContentLoaded', () => {
+        checkAuthState();
+        loadGoalsForSelector();
+      });
     </script>
   </body>
 </html>
