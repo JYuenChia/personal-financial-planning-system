@@ -2,6 +2,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const { userSchema } = require("./schemas/user.schema");
 const { goalSchema } = require("./schemas/goal.schema");
+const { revokedTokenSchema } = require("./schemas/revoked-token.schema");
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -14,6 +15,7 @@ if (!MONGODB_URI || MONGODB_URI === "") {
 
 const User = mongoose.model("User", userSchema);
 const Goal = mongoose.model("Goal", goalSchema);
+const RevokedToken = mongoose.model("RevokedToken", revokedTokenSchema);
 
 async function connectDB() {
   try {
@@ -33,5 +35,6 @@ module.exports = {
   connectDB,
   User,
   Goal,
+  RevokedToken,
   mongoose,
 };

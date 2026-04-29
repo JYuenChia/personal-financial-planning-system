@@ -9,7 +9,12 @@ const refreshSchema = z.object({
   refresh_token: z.string().min(1),
 });
 
+const logoutSchema = z.object({
+  refresh_token: z.string().min(1).optional(),
+});
+
 module.exports = {
   loginSchema,
   refreshSchema,
+  logoutSchema,
 };
