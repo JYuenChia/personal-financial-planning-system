@@ -61,19 +61,136 @@
     </nav>
 
     <main class="container py-5">
-      <h1 class="mb-4">Delete Account</h1>
-      <div class="card p-4">
-        <p class="text-muted">
-          This page is reserved for deleting the user's account.
-        </p>
-        <div class="placeholder-glow">
-          <div class="placeholder col-12 mb-3"></div>
-          <div class="placeholder col-12 mb-3"></div>
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <h1 class="mb-4">Delete Account</h1>
+          
+          <div class="card border-danger p-4">
+            <div class="alert alert-danger">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              <strong>Warning:</strong> This action cannot be undone. All your data will be permanently deleted.
+            </div>
+
+            <h3 class="h6 mb-3">Are you sure you want to delete your account?</h3>
+            <p class="text-muted mb-4">
+              Once you delete your account, there is no going back. Please be certain.
+            </p>
+
+            <form id="deleteForm">
+              <div class="mb-3">
+                <label for="deletePassword" class="form-label">
+                  Confirm your password to delete account
+                </label>
+                <div class="input-group">
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="deletePassword"
+                    placeholder="Enter your password"
+                    required
+                  />
+                  <button class="btn btn-outline-secondary toggle-delete-pwd" type="button">
+                    <i class="bi bi-eye-slash"></i>
+                  </button>
+                </div>
+                <small class="text-muted">We need your password to confirm this action.</small>
+              </div>
+
+              <div class="mb-3 form-check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  id="confirmCheckbox"
+                  required
+                />
+                <label class="form-check-label" for="confirmCheckbox">
+                  I understand that my account and all data will be permanently deleted
+                </label>
+              </div>
+
+              <div id="errorAlert" class="alert alert-danger" style="display: none;"></div>
+
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger" id="deleteBtn">
+                  <i class="bi bi-trash me-2"></i>Delete My Account
+                </button>
+                <a href="profile.html" class="btn btn-outline-secondary">Cancel</a>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="api-client.js"></script>
-  </body>
+    <script>
+      function checkAuthState() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = 'login.html';
+        }
+      }
+
+      // Toggle password visibility
+      document.querySelector('.toggle-delete-pwd')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('deletePassword');
+        const icon = e.target.closest('button').querySelector('i');
+
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.classList.remove('bi-eye-slash');
+          icon.classList.add('bi-eye');
+        } else {
+          input.type = 'password';
+          icon.classList.remove('bi-eye');
+          icon.classList.add('bi-eye-slash');
+        }
+      });
+
+      // Handle delete account form submission
+      document.getElementById('deleteForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const deleteBtn = document.getElementById('deleteBtn');
+        const errorAlert = document.getElementById('errorAlert');
+        const confirmCheckbox = document.getElementById('confirmCheckbox');
+
+        // Double check confirmation
+        if (!confirmCheckbox.checked) {
+          errorAlert.textContent = 'Please confirm that you understand this action.';
+          errorAlert.style.display = 'block';
+          return;
+        }
+
+        // Final confirmation dialog
+        if (!confirm('This will permanently delete your account and all data. This action cannot be undone. Are you absolutely sure?')) {
+          return;
+        }
+
+        try {
+          deleteBtn.disabled = true;
+          deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+          errorAlert.style.display = 'none';
+
+          await apiClient.deleteAccount();
+
+          showSuccess('Account deleted. Logging out...');
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user_id');
+            window.location.href = 'index.html';
+          }, 1500);
+        } catch (error) {
+          errorAlert.textContent = 'Error: ' + error.message;
+          errorAlert.style.display = 'block';
+          deleteBtn.disabled = false;
+          deleteBtn.innerHTML = '<i class="bi bi-trash me-2"></i>Delete My Account';
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', checkAuthState);
+    </script>
 </html>
