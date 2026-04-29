@@ -1,6 +1,7 @@
 const { verifyAccessToken } = require("../utils/auth.util");
+const { isTokenRevoked } = require("../repositories/revoked-token.repository");
 
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization || "";
 
   if (!authHeader.startsWith("Bearer ")) {
@@ -12,13 +13,21 @@ function requireAuth(req, res, next) {
   try {
     const payload = verifyAccessToken(token);
 
-    if (!payload || payload.type !== "access" || !payload.sub) {
+    if (!payload || payload.type !== "access" || !payload.sub || !payload.jti) {
       return res.status(401).json({ error: "Invalid access token" });
+    }
+
+    const revoked = await isTokenRevoked(payload.jti);
+
+    if (revoked) {
+      return res.status(401).json({ error: "Token has been revoked" });
     }
 
     req.auth = {
       userId: payload.sub,
       role: payload.role === "admin" ? "admin" : "user",
+      tokenId: payload.jti,
+      tokenExpiresAt: payload.exp,
     };
     return next();
   } catch (error) {

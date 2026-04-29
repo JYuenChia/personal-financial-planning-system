@@ -6,8 +6,18 @@ const validator = require("validator");
 const {
   createUser,
   findByEmail,
+  findById,
 } = require("../repositories/user.repository");
-const { loginSchema, refreshSchema } = require("../schemas/auth.schema");
+const {
+  loginSchema,
+  refreshSchema,
+  logoutSchema,
+} = require("../schemas/auth.schema");
+const {
+  isTokenRevoked,
+  revokeToken,
+} = require("../repositories/revoked-token.repository");
+const { requireAuth } = require("../middleware/auth.middleware");
 const { registerSchema } = require("../schemas/user.schema");
 const {
   signAccessToken,
@@ -101,8 +111,50 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
-router.post("/auth/logout", (req, res) => {
-  return res.status(200).json({ status: "logged_out" });
+router.post("/auth/logout", requireAuth, async (req, res) => {
+  const parsed = logoutSchema.safeParse(req.body || {});
+
+  if (!parsed.success) {
+    return res.status(400).json({ error: "Invalid logout payload" });
+  }
+
+  try {
+    let refreshPayload = null;
+
+    if (parsed.data.refresh_token) {
+      refreshPayload = verifyRefreshToken(parsed.data.refresh_token);
+
+      if (
+        !refreshPayload ||
+        refreshPayload.type !== "refresh" ||
+        !refreshPayload.sub ||
+        !refreshPayload.jti ||
+        refreshPayload.sub !== req.auth.userId
+      ) {
+        return res.status(401).json({ error: "Invalid refresh token" });
+      }
+    }
+
+    await revokeToken({
+      jti: req.auth.tokenId,
+      type: "access",
+      userId: req.auth.userId,
+      expiresAt: new Date(req.auth.tokenExpiresAt * 1000),
+    });
+
+    if (refreshPayload) {
+      await revokeToken({
+        jti: refreshPayload.jti,
+        type: "refresh",
+        userId: refreshPayload.sub,
+        expiresAt: new Date(refreshPayload.exp * 1000),
+      });
+    }
+
+    return res.status(200).json({ status: "logged_out" });
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
 });
 
 router.post("/auth/refresh", async (req, res) => {
@@ -115,8 +167,14 @@ router.post("/auth/refresh", async (req, res) => {
   try {
     const payload = verifyRefreshToken(parsed.data.refresh_token);
 
-    if (!payload || payload.type !== "refresh" || !payload.sub) {
+    if (!payload || payload.type !== "refresh" || !payload.sub || !payload.jti) {
       return res.status(401).json({ error: "Invalid refresh token" });
+    }
+
+    const revoked = await isTokenRevoked(payload.jti);
+
+    if (revoked) {
+      return res.status(401).json({ error: "Refresh token has been revoked" });
     }
 
     const user = await findById(payload.sub);
