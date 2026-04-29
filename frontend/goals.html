@@ -291,11 +291,10 @@
       document.addEventListener('DOMContentLoaded', () => {
         checkAuthState();
         
-        // --- DATA MOCKING (Replace with fetch('/api/goals') later) ---
-        const mockGoals = [
-          { name: "Emergency Fund", term: "Short-term", priority: "Critical", category: "Basic", description: "Building 6 months of expenses for safety.", saved: 8000, target: 10000, date: "2026-12-31", monthly: 250 },
-          { name: "New Home Downpayment", term: "Long-term", priority: "Need", category: "Basic", description: "Saving for a first family home.", saved: 15000, target: 50000, date: "2032-06-30", monthly: 486 }
-        ];
+        // Store all goals in memory for filtering
+        let allGoals = [];
+
+        // ==================== API INTEGRATION ====================
 
         function getPriorityColor(priority) {
           switch (priority) {
@@ -315,59 +314,158 @@
           }
         }
 
+        // Calculate term based on target_date
+        function calculateTerm(targetDate) {
+          const now = new Date();
+          const target = new Date(targetDate);
+          const diffMonths = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+
+          if (diffMonths <= 12) return 'Short-term';
+          if (diffMonths <= 60) return 'Mid-term';
+          return 'Long-term';
+        }
+
+        // Calculate monthly savings needed
+        function calculateMonthly(saved, target, targetDate) {
+          const now = new Date();
+          const goalDate = new Date(targetDate);
+          const diffTime = goalDate - now;
+          const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44));
+
+          if (diffMonths <= 0) return 0;
+          
+          const needed = target - saved;
+          return diffMonths > 0 ? Math.round(needed / diffMonths) : 0;
+        }
+
         function renderGoals(goalsArray) {
           const grid = document.getElementById('goalsGrid');
+          
+          if (goalsArray.length === 0) {
+            grid.innerHTML = `
+              <div class="col-12 text-center py-5">
+                <p class="text-muted">No goals found. Create your first goal to get started!</p>
+              </div>
+            `;
+            return;
+          }
+
           grid.innerHTML = goalsArray.map(goal => {
-            const pColor = getPriorityColor(goal.priority);
-            const tColor = getTermColor(goal.term);
-            const progress = Math.min(100, Math.round((goal.saved / goal.target) * 100));
+            const term = goal.term || calculateTerm(goal.target_date);
+            const pColor = getPriorityColor(goal.risk_appetite || 'Want');
+            const tColor = getTermColor(term);
+            const progress = Math.min(100, Math.round((goal.current_amount / goal.target_amount) * 100));
+            const monthly = calculateMonthly(goal.current_amount, goal.target_amount, goal.target_date);
             
             return `
-              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-term="${goal.term}" data-priority="${goal.priority}" data-date="${goal.date}">
+              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-id="${goal.id}" data-term="${term}" data-priority="${goal.risk_appetite || 'Want'}" data-date="${goal.target_date}">
                 <div class="card h-100 feature-card border-start border-4 border-${pColor}">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                      <span class="badge bg-${pColor} ${pColor === 'warning' || pColor === 'info' ? 'text-dark' : ''}">${goal.priority}</span>
-                      <span class="badge bg-${tColor}">${goal.term}</span>
+                      <span class="badge bg-${pColor} ${pColor === 'warning' || pColor === 'info' ? 'text-dark' : ''}">${goal.risk_appetite || 'Want'}</span>
+                      <span class="badge bg-${tColor}">${term}</span>
                     </div>
-                    <h5 class="card-title fw-bold text-truncate">${goal.name}</h5>
-                    <p class="card-text text-muted small">${goal.description}</p>
+                    <h5 class="card-title fw-bold text-truncate">${goal.title}</h5>
                     
                     <div class="progress mb-2" style="height: 10px; border-radius: 5px;">
                       <div class="progress-bar bg-${progress >= 100 ? 'success' : 'primary'}" role="progressbar" style="width: ${progress}%"></div>
                     </div>
                     
                     <div class="d-flex justify-content-between small fw-bold mb-3">
-                      <span>RM ${goal.saved.toLocaleString()} / RM ${goal.target.toLocaleString()}</span>
+                      <span>RM ${goal.current_amount.toLocaleString()} / RM ${goal.target_amount.toLocaleString()}</span>
                       <span class="text-primary">${progress}%</span>
                     </div>
 
                     <div class="p-2 bg-light rounded-3 mb-3 small">
                       <div class="d-flex justify-content-between mb-1">
                         <span>Target Date:</span>
-                        <span class="fw-bold">${new Date(goal.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                        <span class="fw-bold">${new Date(goal.target_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
                       </div>
                       <div class="d-flex justify-content-between text-accent fw-bold">
                         <span>Monthly Target:</span>
-                        <span>RM ${goal.monthly}/mo</span>
+                        <span>RM ${monthly}/mo</span>
                       </div>
                     </div>
 
                     <div class="d-flex gap-2">
-                      <button class="btn btn-outline-primary btn-sm flex-grow-1">Update Progress</button>
-                      <button class="btn btn-light btn-sm text-danger"><i class="bi bi-trash"></i></button>
+                      <button class="btn btn-outline-primary btn-sm flex-grow-1 btn-update-progress" data-goal-id="${goal.id}">Update Progress</button>
+                      <button class="btn btn-light btn-sm text-danger btn-delete-goal" data-goal-id="${goal.id}"><i class="bi bi-trash"></i></button>
                     </div>
                   </div>
                 </div>
               </div>
             `;
           }).join('');
+
+          // Attach event listeners to action buttons
+          attachGoalEventListeners();
         }
 
-        // Initial render
-        renderGoals(mockGoals);
+        // Attach event listeners to buttons
+        function attachGoalEventListeners() {
+          document.querySelectorAll('.btn-update-progress').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              const goalId = btn.getAttribute('data-goal-id');
+              const newAmount = prompt('Enter current amount saved (RM):');
+              
+              if (newAmount === null) return; // User cancelled
+              
+              const amount = parseFloat(newAmount);
+              if (isNaN(amount) || amount < 0) {
+                showError('Please enter a valid amount');
+                return;
+              }
 
-        // --- SEARCH & FILTER LOGIC ---
+              try {
+                await apiClient.updateGoal(goalId, { current_amount: amount });
+                showSuccess('Goal updated successfully!');
+                await loadGoals();
+              } catch (error) {
+                showError('Error updating goal: ' + error.message);
+              }
+            });
+          });
+
+          document.querySelectorAll('.btn-delete-goal').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              const goalId = btn.getAttribute('data-goal-id');
+              
+              if (!confirm('Are you sure you want to delete this goal?')) return;
+
+              try {
+                await apiClient.deleteGoal(goalId);
+                showSuccess('Goal deleted successfully!');
+                await loadGoals();
+              } catch (error) {
+                showError('Error deleting goal: ' + error.message);
+              }
+            });
+          });
+        }
+
+        // Load goals from API
+        async function loadGoals() {
+          try {
+            showLoading(true);
+            const response = await apiClient.getGoals();
+            allGoals = response.goals || [];
+            renderGoals(allGoals);
+            filterGoals(); // Re-apply filters
+          } catch (error) {
+            showError('Error loading goals: ' + error.message);
+            allGoals = [];
+            renderGoals([]);
+          } finally {
+            showLoading(false);
+          }
+        }
+
+        // Load initial goals
+        loadGoals();
+
+        // ==================== SEARCH & FILTER LOGIC ====================
         const searchInput = document.getElementById('goalSearch');
         const resetBtn = document.getElementById('resetFilters');
         const filterItems = document.querySelectorAll('.dropdown-item');
@@ -377,6 +475,7 @@
 
         let activeTerm = null;
         let activePriority = null;
+
 
         function filterGoals() {
           const searchTerm = searchInput.value.toLowerCase();
@@ -461,6 +560,54 @@
 
         // Re-calculate after rendering
         filterGoals();
+
+        // ==================== FORM SUBMISSION ====================
+        document.getElementById('goalForm')?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const goalName = document.getElementById('gName').value.trim();
+          const goalCategory = document.getElementById('gCategory').value;
+          const targetAmount = parseFloat(document.getElementById('gTarget').value);
+          const currentAmount = parseFloat(document.getElementById('gSaved').value) || 0;
+          const targetDate = document.getElementById('gDate').value;
+          const priority = document.querySelector('input[name="priority"]:checked').value;
+          const submitBtn = document.querySelector('#goalForm button[type="submit"]');
+
+          // Validation
+          if (!goalName || !targetAmount || !targetDate) {
+            showError('Please fill in all required fields');
+            return;
+          }
+
+          if (currentAmount > targetAmount) {
+            showError('Current amount cannot exceed target amount');
+            return;
+          }
+
+          try {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+
+            await apiClient.createGoal(goalName, targetAmount, currentAmount, targetDate, priority);
+
+            showSuccess('Goal created successfully!');
+            
+            // Clear form
+            document.getElementById('goalForm').reset();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addGoalModal'));
+            if (modal) modal.hide();
+
+            // Reload goals
+            await loadGoals();
+          } catch (error) {
+            showError('Error creating goal: ' + error.message);
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Goal';
+          }
+        });
 
         // --- CALCULATOR LOGIC (Step 5) ---
         const gSaved = document.getElementById('gSaved');
