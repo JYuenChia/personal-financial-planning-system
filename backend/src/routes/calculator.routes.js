@@ -1,10 +1,11 @@
 const express = require("express");
 const { v4: uuidv4 } = require("uuid");
+const { requireAuth } = require("../middleware/auth.middleware");
 const { calculationCreateSchema } = require("../schemas/calculation.schema");
 const calculationsRepository = require("../repositories/calculations.repository");
 const router = express.Router();
 
-router.post("/calculations", async (req, res) => {
+router.post("/calculations", requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
     const { title, calculation } = req.body;
@@ -39,7 +40,7 @@ router.post("/calculations", async (req, res) => {
   }
 });
 
-router.get("/calculations", async (req, res) => {
+router.get("/calculations", requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
     const calculations = await calculationsRepository.listCalculations({
@@ -54,7 +55,7 @@ router.get("/calculations", async (req, res) => {
   }
 });
 
-router.delete("/calculations/:id", async (req, res) => {
+router.delete("/calculations/:id", requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
@@ -78,7 +79,7 @@ router.delete("/calculations/:id", async (req, res) => {
   }
 });
 
-router.delete("/calculations", async (req, res) => {
+router.delete("/calculations", requireAuth, async (req, res) => {
   try {
     const userId = req.user.id;
     await calculationsRepository.deleteAllCalculations(userId);
