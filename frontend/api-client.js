@@ -234,6 +234,14 @@ class ApiClient {
   getCalculations() {
     return this.request('GET', '/calculator/calculations');
   }
+
+  deleteCalculation(id) {
+    return this.request('DELETE', `/calculator/calculations/${id}`);
+  }
+
+  clearAllCalculations() {
+    return this.request('DELETE', '/calculator/calculations');
+  }
 }
 
 // Export singleton
