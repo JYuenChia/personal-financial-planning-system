@@ -11,155 +11,97 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="index.html">Finance Planner</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#mainNavbar"
-          aria-controls="mainNavbar"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNavbar">
-          <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex align-items-center" id="nav-list">
-            <li class="nav-item">
-              <a class="nav-link px-3" href="index.html">Home</a>
-            </li>
-            <!-- Auth links will be injected here via JS -->
-            <li class="nav-item auth-only" style="display: none;">
-              <a class="nav-link px-3" href="goals.html">Goals</a>
-            </li>
-            <li class="nav-item auth-only" style="display: none;">
-              <a class="nav-link px-3" href="recommendations.html">Recommendations</a>
-            </li>
-            <li class="nav-item auth-only" style="display: none;">
-              <a class="nav-link px-3" href="market-insights.html">Market Insights</a>
-            </li>
-            <li class="nav-item auth-only" style="display: none;">
-              <a class="nav-link px-3" href="calculator.html">Calculator</a>
-            </li>
-            <li class="nav-item guest-only">
-              <a class="nav-link px-3" href="register.html">Register</a>
-            </li>
-            <li class="nav-item guest-only">
-              <a class="nav-link px-3" href="login.html">Login</a>
-            </li>
-            <li class="nav-item auth-only ms-lg-2" style="display: none;">
-              <a class="nav-link px-2" href="profile.html" title="Profile">
-                <i class="bi bi-person-circle fs-4 text-white"></i>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-
-    <main class="container py-5">
-      <section class="hero-section text-white text-center py-5">
-        <div class="hero-content mx-auto">
-          <h1 class="display-5 fw-bold">Build Your Financial Future</h1>
-          <p class="lead my-4">
-            A landing page for your personal finance planning system with goal
-            tracking, investment advice, market insights, and ROI tools.
-          </p>
-          <div
-            class="d-flex flex-column flex-sm-row justify-content-center gap-3"
+  <body class="home-page">
+    <div class="hero-wrapper">
+      <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+          <a class="navbar-brand fw-bold fs-3" href="index.html">FINANCE <span class="fw-light">PLANNER</span></a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#mainNavbar"
           >
-            <a href="#features" class="btn btn-light btn-lg"
-              >Explore Features</a
-            >
-            <a href="goals.html" class="btn btn-outline-light btn-lg auth-only" style="display: none;"
-              >My Goals</a
-            >
-            <a href="register.html" class="btn btn-light btn-lg"
-              >Get Started</a
-            >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex align-items-center">
+              <li class="nav-item"><a class="nav-link px-3" href="index.html">Home</a></li>
+              <li class="nav-item auth-only" style="display: none;"><a class="nav-link px-3" href="goals.html">Goals</a></li>
+              <li class="nav-item auth-only" style="display: none;"><a class="nav-link px-3" href="recommendations.html">Recommendations</a></li>
+              <li class="nav-item auth-only" style="display: none;"><a class="nav-link px-3" href="market-insights.html">Market Insights</a></li>
+              <li class="nav-item auth-only" style="display: none;"><a class="nav-link px-3" href="calculator.html">Calculator</a></li>
+              <li class="nav-item guest-only"><a class="nav-link px-3" href="login.html">Login</a></li>
+              <li class="nav-item guest-only ms-2"><a class="btn btn-primary px-4 rounded-pill py-1" href="register.html">Get Started</a></li>
+              <li class="nav-item auth-only ms-lg-2" style="display: none;">
+                <a class="nav-link px-2" href="profile.html" title="Profile">
+                  <i class="bi bi-person-circle fs-5" style="color: var(--palette-primary) !important;"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <section class="hero-section text-white py-5">
+        <div class="container">
+          <div class="hero-content">
+            <h1 class="display-1">Empowering Your <br>Wealth Journey</h1>
+            <p class="hero-description">
+              Expert financial planning and investment insights to elevate your <br>future and build lasting success.
+            </p>
+            <div class="d-flex gap-3">
+              <a href="goals.html" class="btn btn-primary btn-lg px-5 rounded-0">My Goals</a>
+              <a href="#features" class="btn btn-outline-light btn-lg px-5 rounded-0">Explore Features</a>
+            </div>
           </div>
         </div>
       </section>
+    </div>
 
-      <section id="features" class="pt-5">
-        <div class="text-center mb-5">
-          <h2>Features</h2>
-          <p class="text-muted mx-auto" style="max-width: 680px">
-            Discover the core components of the system: user account management,
-            personalized goals, investment recommendations, market insights, and
-            ROI calculation tools.
-          </p>
+    <main class="container">
+      <section id="features" class="feature-cards-section">
+        <div class="d-flex justify-content-between align-items-end mb-4 text-white">
+          <h2 class="display-6 fw-bold mb-0">Discover Features</h2>
+          <a href="#" class="btn btn-outline-light rounded-pill px-4 btn-sm">Explore all tools</a>
         </div>
+        
+        <div class="feature-grid">
+          <!-- Card 1 -->
+          <a href="goals.html" class="card-item">
+            <div class="card-info">
+              <h4>Planning</h4>
+              <p>Define your financial milestones and track your progress with smart goal setting.</p>
+            </div>
+          </a>
 
-        <div class="row g-4">
-          <div class="col-md-6 col-xl-4">
-            <div class="card feature-card h-100">
-              <div class="card-body">
-                <h3 class="h5">Profile Management</h3>
-                <p class="card-text text-muted">
-                  View and update user details, change password, or delete an
-                  account once signed in.
-                </p>
-              </div>
+          <!-- Card 2 -->
+          <a href="market-insights.html" class="card-item">
+            <div class="card-info">
+              <h4>Market News</h4>
+              <p>Stay ahead with real-time insights and data-driven trends from global markets.</p>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-4">
-            <div class="card feature-card h-100">
-              <div class="card-body">
-                <h3 class="h5">Goal-Based Planning</h3>
-                <p class="card-text text-muted">
-                  Create, manage, and track personal financial goals like
-                  retirement, education, or home purchase.
-                </p>
-              </div>
+          </a>
+
+          <!-- Card 3 -->
+          <a href="recommendations.html" class="card-item">
+            <div class="card-info">
+              <h4>Smart Strategy</h4>
+              <p>Receive personalized advice tailored to your unique financial portfolio.</p>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-4">
-            <div class="card feature-card h-100">
-              <div class="card-body">
-                <h3 class="h5">Strategy Recommendations</h3>
-                <p class="card-text text-muted">
-                  Receive investment strategy guidance designed to support your
-                  financial objectives.
-                </p>
-              </div>
+          </a>
+
+          <!-- Card 4 -->
+          <a href="calculator.html" class="card-item">
+            <div class="card-info">
+              <h4>ROI Calculator</h4>
+              <p>Analyze potential returns and make informed decisions with our powerful tools.</p>
             </div>
-          </div>
-          <div class="col-md-6 col-xl-4">
-            <div class="card feature-card h-100">
-              <div class="card-body">
-                <h3 class="h5">Market Insights</h3>
-                <p class="card-text text-muted">
-                  Explore market trends, news summaries, and financial insights
-                  in an easy-to-read dashboard.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-xl-4">
-            <div class="card feature-card h-100">
-              <div class="card-body">
-                <h3 class="h5">ROI Calculator</h3>
-                <p class="card-text text-muted">
-                  Compare investment options and estimate potential returns
-                  before making decisions.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-xl-4">
-            <div class="card feature-card h-100">
-              <div class="card-body">
-                <h3 class="h5">Planning Dashboard</h3>
-                <p class="card-text text-muted">
-                  Access all your planning tools, from goals to ROI calculators, in one centralized marketplace.
-                </p>
-                <a href="goals.html" class="stretched-link"></a>
-              </div>
-            </div>
+          </a>
+        </div>
+      </section>
+    </main>
+                  </div>
           </div>
         </div>
       </section>
@@ -206,9 +148,6 @@
         </div>
       </div>
 
-      <a href="https://wa.me/yournumber" class="whatsapp-float shadow" target="_blank">
-        <i class="bi bi-whatsapp"></i>
-      </a>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
