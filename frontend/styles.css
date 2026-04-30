@@ -1,9 +1,9 @@
 :root {
   color-scheme: light;
-  --palette-primary: #373ed1;
-  --palette-secondary: #83c4b9;
-  --palette-surface: #f7f1e9;
-  --palette-accent: #afaba4;
+  --palette-primary: #355872;
+  --palette-secondary: #7aaace;
+  --palette-surface: #f7f8f0;
+  --palette-accent: #9cd5ff;
   --palette-text: #1f3f56;
 }
 
@@ -113,7 +113,7 @@ body {
 footer {
   background: var(--palette-surface);
   /* Make the line 2px thick and slightly darker blue-grey */
-  border-top: 1px solid #373ed1; 
+  border-top: 1px solid var(--palette-primary); 
   color: var(--palette-text);
   padding: 60px 0;
 }
