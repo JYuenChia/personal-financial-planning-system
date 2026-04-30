@@ -271,6 +271,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="api-client.js"></script>
+    <script src="dom-utils.js"></script>
     <script>
       // Function to handle Navbar state
       function checkAuthState() {
@@ -340,62 +341,160 @@
 
         function renderGoals(goalsArray) {
           const grid = document.getElementById('goalsGrid');
+          if (!grid) return;
           
-          if (goalsArray.length === 0) {
-            grid.innerHTML = `
-              <div class="col-12 text-center py-5">
-                <p class="text-muted">No goals found. Create your first goal to get started!</p>
-              </div>
-            `;
+          grid.innerHTML = '';
+          
+          if (!goalsArray || goalsArray.length === 0) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'col-12 text-center py-5';
+            
+            const emptyMsg = document.createElement('p');
+            emptyMsg.className = 'text-muted';
+            emptyMsg.textContent = 'No goals found. Create your first goal to get started!';
+            
+            emptyDiv.appendChild(emptyMsg);
+            grid.appendChild(emptyDiv);
             return;
           }
 
-          grid.innerHTML = goalsArray.map(goal => {
+          const fragment = document.createDocumentFragment();
+          
+          goalsArray.forEach(goal => {
             const term = goal.term || calculateTerm(goal.target_date);
             const pColor = getPriorityColor(goal.risk_appetite || 'Want');
             const tColor = getTermColor(term);
             const progress = Math.min(100, Math.round((goal.current_amount / goal.target_amount) * 100));
             const monthly = calculateMonthly(goal.current_amount, goal.target_amount, goal.target_date);
             
-            return `
-              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-id="${goal.id}" data-term="${term}" data-priority="${goal.risk_appetite || 'Want'}" data-date="${goal.target_date}">
-                <div class="card h-100 feature-card border-start border-4 border-${pColor}">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                      <span class="badge bg-${pColor} ${pColor === 'warning' || pColor === 'info' ? 'text-dark' : ''}">${goal.risk_appetite || 'Want'}</span>
-                      <span class="badge bg-${tColor}">${term}</span>
-                    </div>
-                    <h5 class="card-title fw-bold text-truncate">${goal.title}</h5>
-                    
-                    <div class="progress mb-2" style="height: 10px; border-radius: 5px;">
-                      <div class="progress-bar bg-${progress >= 100 ? 'success' : 'primary'}" role="progressbar" style="width: ${progress}%"></div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between small fw-bold mb-3">
-                      <span>RM ${goal.current_amount.toLocaleString()} / RM ${goal.target_amount.toLocaleString()}</span>
-                      <span class="text-primary">${progress}%</span>
-                    </div>
-
-                    <div class="p-2 bg-light rounded-3 mb-3 small">
-                      <div class="d-flex justify-content-between mb-1">
-                        <span>Target Date:</span>
-                        <span class="fw-bold">${new Date(goal.target_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                      </div>
-                      <div class="d-flex justify-content-between text-accent fw-bold">
-                        <span>Monthly Target:</span>
-                        <span>RM ${monthly}/mo</span>
-                      </div>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                      <button class="btn btn-outline-primary btn-sm flex-grow-1 btn-update-progress" data-goal-id="${goal.id}">Update Progress</button>
-                      <button class="btn btn-light btn-sm text-danger btn-delete-goal" data-goal-id="${goal.id}"><i class="bi bi-trash"></i></button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('');
+            // Main container
+            const colDiv = document.createElement('div');
+            colDiv.className = 'col-sm-6 col-lg-4 mb-4 goal-card';
+            colDiv.setAttribute('data-id', goal.id);
+            colDiv.setAttribute('data-term', term);
+            colDiv.setAttribute('data-priority', goal.risk_appetite || 'Want');
+            colDiv.setAttribute('data-date', goal.target_date);
+            
+            // Card
+            const card = document.createElement('div');
+            card.className = `card h-100 feature-card border-start border-4 border-${pColor}`;
+            
+            // Card body
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+            
+            // Badges header
+            const badgesDiv = document.createElement('div');
+            badgesDiv.className = 'd-flex justify-content-between align-items-start mb-2';
+            
+            const priorityBadge = document.createElement('span');
+            const textDarkClass = (pColor === 'warning' || pColor === 'info') ? 'text-dark' : '';
+            priorityBadge.className = `badge bg-${pColor} ${textDarkClass}`;
+            priorityBadge.textContent = goal.risk_appetite || 'Want';
+            
+            const termBadge = document.createElement('span');
+            termBadge.className = `badge bg-${tColor}`;
+            termBadge.textContent = term;
+            
+            badgesDiv.appendChild(priorityBadge);
+            badgesDiv.appendChild(termBadge);
+            cardBody.appendChild(badgesDiv);
+            
+            // Title
+            const title = document.createElement('h5');
+            title.className = 'card-title fw-bold text-truncate';
+            title.textContent = goal.title;
+            cardBody.appendChild(title);
+            
+            // Progress bar
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'progress mb-2';
+            progressDiv.style.height = '10px';
+            progressDiv.style.borderRadius = '5px';
+            
+            const progressBar = document.createElement('div');
+            const barClass = progress >= 100 ? 'bg-success' : 'bg-primary';
+            progressBar.className = `progress-bar ${barClass}`;
+            progressBar.setAttribute('role', 'progressbar');
+            progressBar.style.width = `${progress}%`;
+            
+            progressDiv.appendChild(progressBar);
+            cardBody.appendChild(progressDiv);
+            
+            // Amount display
+            const amountDiv = document.createElement('div');
+            amountDiv.className = 'd-flex justify-content-between small fw-bold mb-3';
+            
+            const currentAmount = document.createElement('span');
+            currentAmount.textContent = `RM ${goal.current_amount.toLocaleString()} / RM ${goal.target_amount.toLocaleString()}`;
+            
+            const percentDisplay = document.createElement('span');
+            percentDisplay.className = 'text-primary';
+            percentDisplay.textContent = `${progress}%`;
+            
+            amountDiv.appendChild(currentAmount);
+            amountDiv.appendChild(percentDisplay);
+            cardBody.appendChild(amountDiv);
+            
+            // Target info box
+            const infoBox = document.createElement('div');
+            infoBox.className = 'p-2 bg-light rounded-3 mb-3 small';
+            
+            const dateRow = document.createElement('div');
+            dateRow.className = 'd-flex justify-content-between mb-1';
+            
+            const dateLabel = document.createElement('span');
+            dateLabel.textContent = 'Target Date:';
+            
+            const dateValue = document.createElement('span');
+            dateValue.className = 'fw-bold';
+            dateValue.textContent = new Date(goal.target_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            
+            dateRow.appendChild(dateLabel);
+            dateRow.appendChild(dateValue);
+            infoBox.appendChild(dateRow);
+            
+            const monthlyRow = document.createElement('div');
+            monthlyRow.className = 'd-flex justify-content-between text-accent fw-bold';
+            
+            const monthlyLabel = document.createElement('span');
+            monthlyLabel.textContent = 'Monthly Target:';
+            
+            const monthlyValue = document.createElement('span');
+            monthlyValue.textContent = `RM ${monthly}/mo`;
+            
+            monthlyRow.appendChild(monthlyLabel);
+            monthlyRow.appendChild(monthlyValue);
+            infoBox.appendChild(monthlyRow);
+            cardBody.appendChild(infoBox);
+            
+            // Action buttons
+            const buttonDiv = document.createElement('div');
+            buttonDiv.className = 'd-flex gap-2';
+            
+            const updateBtn = document.createElement('button');
+            updateBtn.className = 'btn btn-outline-primary btn-sm flex-grow-1 btn-update-progress';
+            updateBtn.setAttribute('data-goal-id', goal.id);
+            updateBtn.textContent = 'Update Progress';
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-light btn-sm text-danger btn-delete-goal';
+            deleteBtn.setAttribute('data-goal-id', goal.id);
+            
+            const deleteIcon = document.createElement('i');
+            deleteIcon.className = 'bi bi-trash';
+            deleteBtn.appendChild(deleteIcon);
+            
+            buttonDiv.appendChild(updateBtn);
+            buttonDiv.appendChild(deleteBtn);
+            cardBody.appendChild(buttonDiv);
+            
+            card.appendChild(cardBody);
+            colDiv.appendChild(card);
+            fragment.appendChild(colDiv);
+          });
+          
+          grid.appendChild(fragment);
 
           // Attach event listeners to action buttons
           attachGoalEventListeners();
