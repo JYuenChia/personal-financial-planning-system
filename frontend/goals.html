@@ -32,9 +32,9 @@
     </style>
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="index.html">Finance Planner</a>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand fw-bold fs-3" href="index.html">FINANCE <span class="fw-light">PLANNER</span></a>
         <button
           class="navbar-toggler"
           type="button"
@@ -72,7 +72,7 @@
             </li>
             <li class="nav-item auth-only ms-lg-2" style="display: none;">
               <a class="nav-link px-2" href="profile.html" title="Profile">
-                <i class="bi bi-person-circle fs-4 text-white"></i>
+                <i class="bi bi-person-circle fs-5" style="color: var(--palette-primary) !important;"></i>
               </a>
             </li>
           </ul>
@@ -97,42 +97,41 @@
       </div>
 
       <!-- Filters Section -->
-      <div class="d-flex gap-2 mb-4 align-items-center">
-        <button class="btn btn-primary btn-sm rounded-pill" id="resetFilters">All Goals</button>
-        
-        <div class="vr mx-1"></div>
+      <div class="filter-container mt-4">
+        <div class="filter-group">
+          <!-- Term Dropdown -->
+          <div class="filter-btn-group dropdown">
+            <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" id="termDropdownBtn">
+              Term: All
+            </button>
+            <ul class="dropdown-menu shadow-lg border-0">
+              <li><a class="dropdown-item" href="#" data-filter-term="All">All Terms</a></li>
+              <li><a class="dropdown-item" href="#" data-filter-term="Short-term">Short-term</a></li>
+              <li><a class="dropdown-item" href="#" data-filter-term="Mid-term">Mid-term</a></li>
+              <li><a class="dropdown-item" href="#" data-filter-term="Long-term">Long-term</a></li>
+            </ul>
+          </div>
 
-        <!-- Term Dropdown -->
-        <div class="btn-group">
-          <button class="btn btn-outline-secondary btn-sm dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="termDropdownBtn">
-            Term: All
-          </button>
-          <ul class="dropdown-menu shadow-sm border-0 mt-2">
-            <li><a class="dropdown-item" href="#" data-filter-term="Short-term"><span class="badge bg-success me-2"> </span>Short-term (0-12 Mo)</a></li>
-            <li><a class="dropdown-item" href="#" data-filter-term="Mid-term"><span class="badge bg-primary me-2"> </span>Mid-term (1-5 Yr)</a></li>
-            <li><a class="dropdown-item" href="#" data-filter-term="Long-term"><span class="badge bg-dark me-2"> </span>Long-term (5 Yr+)</a></li>
-          </ul>
-        </div>
+          <!-- Priority Dropdown -->
+          <div class="filter-btn-group dropdown">
+            <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" id="priorityDropdownBtn">
+              Priority: All
+            </button>
+            <ul class="dropdown-menu shadow-lg border-0">
+              <li><a class="dropdown-item" href="#" data-filter-priority="All">All Priorities</a></li>
+              <li><a class="dropdown-item" href="#" data-filter-priority="Critical">Critical</a></li>
+              <li><a class="dropdown-item" href="#" data-filter-priority="Need">Need</a></li>
+              <li><a class="dropdown-item" href="#" data-filter-priority="Want">Want</a></li>
+            </ul>
+          </div>
 
-        <!-- Priority Dropdown -->
-        <div class="btn-group">
-          <button class="btn btn-outline-secondary btn-sm dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="priorityDropdownBtn">
-            Priority: All
-          </button>
-          <ul class="dropdown-menu shadow-sm border-0 mt-2">
-            <li><a class="dropdown-item" href="#" data-filter-priority="Critical"><span class="badge bg-danger me-2">!</span>Critical</a></li>
-            <li><a class="dropdown-item" href="#" data-filter-priority="Need"><span class="badge bg-warning text-dark me-2">!</span>Need</a></li>
-            <li><a class="dropdown-item" href="#" data-filter-priority="Want"><span class="badge bg-info text-dark me-2">!</span>Want</a></li>
-          </ul>
-        </div>
+          <div class="vr bg-white opacity-25 mx-2"></div>
 
-        <div class="vr mx-1"></div>
-
-        <!-- Date Filter (Outline Wrapper Style) -->
-        <div class="px-3 py-1 rounded-pill d-flex align-items-center gap-2" style="border: 1px solid #6c757d; background: transparent;">
-          <i class="bi bi-calendar-event text-secondary"></i>
-          <span class="small fw-bold text-uppercase text-secondary d-none d-sm-inline" style="font-size: 0.65rem; pointer-events: none;">Before:</span>
-          <input type="date" id="dateFilter" class="border-0 bg-transparent text-secondary small fw-bold" style="outline: none; cursor: pointer; font-size: 0.8rem; height: 1.5rem;">
+          <!-- Date Filter -->
+          <div class="d-flex align-items-center gap-2">
+            <span class="filter-label">Target Date:</span>
+            <input type="date" id="dateFilter" class="filter-input">
+          </div>
         </div>
       </div>
 
@@ -183,22 +182,19 @@
         </div>
       </div>
 
-      <a href="https://wa.me/yournumber" class="whatsapp-float shadow" target="_blank">
-        <i class="bi bi-whatsapp"></i>
-      </a>
     </footer>
     
     <!-- Floating Add New Goal Button -->
-    <button class="btn btn-primary shadow-lg d-flex align-items-center justify-content-center" 
-            style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; z-index: 1050;" 
+    <button class="btn btn-warning shadow-lg d-flex align-items-center justify-content-center" 
+            style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; z-index: 1050; background-color: #ffc107; border: 2px solid #fff;" 
             data-bs-toggle="modal" data-bs-target="#addGoalModal" title="Add New Goal">
-      <i class="bi bi-plus-lg fs-3"></i>
+      <i class="bi bi-plus-lg fs-3 text-dark"></i>
     </button>
 
     <!-- Modal for Adding Goals -->
-    <div class="modal fade" id="addGoalModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0" style="border-radius: 20px;">
+    <div class="modal fade" id="addGoalModal" tabindex="-1" aria-hidden="true" style="z-index: 2050;">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-height: 50vh; margin-top: 50px; max-width: 450px;">
+        <div class="modal-content border-0" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;">
           <div class="modal-header border-0 pb-0 pt-4 px-4">
             <h5 class="modal-title fw-bold fs-4">New Financial Goal</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -262,7 +258,7 @@
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-primary w-100 py-3 fw-bold" style="border-radius: 12px;">Create Goal</button>
+              <button type="submit" class="btn btn-warning w-100 py-3 fw-bold" style="border-radius: 12px; background-color: #ffc107; border: none; color: #212529;">Create Goal</button>
             </form>
           </div>
         </div>
@@ -297,64 +293,52 @@
         ];
 
         function getPriorityColor(priority) {
-          switch (priority) {
-            case 'Critical': return 'danger';
-            case 'Need': return 'warning';
-            case 'Want': return 'info';
-            default: return 'secondary';
-          }
+          return 'primary'; // All priority badges use the primary theme color
         }
 
         function getTermColor(term) {
-          switch (term) {
-            case 'Short-term': return 'success';
-            case 'Mid-term': return 'primary';
-            case 'Long-term': return 'dark';
-            default: return 'secondary';
-          }
+          return 'outline-secondary'; // Term badges use a subtle outline
         }
 
         function renderGoals(goalsArray) {
           const grid = document.getElementById('goalsGrid');
           grid.innerHTML = goalsArray.map(goal => {
             const pColor = getPriorityColor(goal.priority);
-            const tColor = getTermColor(goal.term);
             const progress = Math.min(100, Math.round((goal.saved / goal.target) * 100));
             
             return `
               <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-term="${goal.term}" data-priority="${goal.priority}" data-date="${goal.date}">
-                <div class="card h-100 feature-card border-start border-4 border-${pColor}">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                      <span class="badge bg-${pColor} ${pColor === 'warning' || pColor === 'info' ? 'text-dark' : ''}">${goal.priority}</span>
-                      <span class="badge bg-${tColor}">${goal.term}</span>
+                <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px;">
+                  <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <span class="badge border border-primary text-primary px-3 py-2" style="font-size: 0.7rem; border-radius: 6px;">${goal.priority.toUpperCase()}</span>
+                      <span class="small text-muted fw-bold" style="font-size: 0.7rem;">${goal.term.toUpperCase()}</span>
                     </div>
-                    <h5 class="card-title fw-bold text-truncate">${goal.name}</h5>
-                    <p class="card-text text-muted small">${goal.description}</p>
+                    <h5 class="card-title fw-bold mb-3" style="color: var(--palette-text) !important;">${goal.name}</h5>
                     
-                    <div class="progress mb-2" style="height: 10px; border-radius: 5px;">
-                      <div class="progress-bar bg-${progress >= 100 ? 'success' : 'primary'}" role="progressbar" style="width: ${progress}%"></div>
+                    <div class="progress mb-2" style="height: 6px; border-radius: 3px; background-color: #eee;">
+                      <div class="progress-bar" role="progressbar" style="width: ${progress}%; background-color: var(--palette-primary);"></div>
                     </div>
                     
-                    <div class="d-flex justify-content-between small fw-bold mb-3">
-                      <span>RM ${goal.saved.toLocaleString()} / RM ${goal.target.toLocaleString()}</span>
-                      <span class="text-primary">${progress}%</span>
+                    <div class="d-flex justify-content-between small fw-bold mb-4">
+                      <span class="text-muted">RM ${goal.saved.toLocaleString()}</span>
+                      <span style="color: var(--palette-primary);">${progress}%</span>
                     </div>
 
-                    <div class="p-2 bg-light rounded-3 mb-3 small">
-                      <div class="d-flex justify-content-between mb-1">
-                        <span>Target Date:</span>
-                        <span class="fw-bold">${new Date(goal.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                    <div class="p-3 bg-light rounded-3 mb-4 border-0">
+                      <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Target Date</span>
+                        <span class="fw-bold" style="color: var(--palette-text);">${new Date(goal.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
                       </div>
-                      <div class="d-flex justify-content-between text-accent fw-bold">
-                        <span>Monthly Target:</span>
-                        <span>RM ${goal.monthly}/mo</span>
+                      <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Monthly Needed</span>
+                        <span class="fw-bold" style="color: var(--palette-primary);">RM ${goal.monthly}</span>
                       </div>
                     </div>
 
                     <div class="d-flex gap-2">
-                      <button class="btn btn-outline-primary btn-sm flex-grow-1">Update Progress</button>
-                      <button class="btn btn-light btn-sm text-danger"><i class="bi bi-trash"></i></button>
+                      <button class="btn btn-primary btn-sm flex-grow-1 py-2" style="border-radius: 8px;">Update Progress</button>
+                      <button class="btn btn-outline-danger btn-sm px-3" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
                     </div>
                   </div>
                 </div>
@@ -390,20 +374,12 @@
             const goalDate = new Date(goalDateStr);
             
             let matchesSearch = title.includes(searchTerm);
-            let matchesTerm = !activeTerm || term === activeTerm;
-            let matchesPriority = !activePriority || priority === activePriority;
+            let matchesTerm = !activeTerm || activeTerm === 'All' || term === activeTerm;
+            let matchesPriority = !activePriority || activePriority === 'All' || priority === activePriority;
             let matchesDate = !dateLimit || goalDate <= dateLimit;
 
             card.style.display = (matchesSearch && matchesTerm && matchesPriority && matchesDate) ? 'block' : 'none';
           });
-
-          // Update "All Goals" active state: Solid when no filters active, Outline when filtered
-          if (!activeTerm && !activePriority && searchInput.value === '' && !dateFilterInput.value) {
-            resetBtn.className = 'btn btn-primary btn-sm rounded-pill';
-            resetBtn.blur();
-          } else {
-            resetBtn.className = 'btn btn-outline-primary btn-sm rounded-pill';
-          }
         }
 
         searchInput.addEventListener('input', filterGoals);
@@ -414,7 +390,7 @@
             e.preventDefault();
             if (item.hasAttribute('data-filter-term')) {
               activeTerm = item.getAttribute('data-filter-term');
-              termBtn.innerText = `Term: ${activeTerm}`;
+              termBtn.innerText = activeTerm === 'All' ? 'Term: All' : `Term: ${activeTerm}`;
               
               // Remove old utility classes
               termBtn.classList.remove('btn-outline-secondary', 'btn-secondary', 'btn-success', 'btn-primary', 'btn-dark');
@@ -423,10 +399,11 @@
               if (activeTerm === 'Short-term') termBtn.classList.add('btn-success');
               else if (activeTerm === 'Mid-term') termBtn.classList.add('btn-primary');
               else if (activeTerm === 'Long-term') termBtn.classList.add('btn-dark');
+              else termBtn.classList.add('btn-outline-secondary');
               
             } else if (item.hasAttribute('data-filter-priority')) {
               activePriority = item.getAttribute('data-filter-priority');
-              priorityBtn.innerText = `Priority: ${activePriority}`;
+              priorityBtn.innerText = activePriority === 'All' ? 'Priority: All' : `Priority: ${activePriority}`;
               
               // Remove old utility classes
               priorityBtn.classList.remove('btn-outline-secondary', 'btn-secondary', 'btn-danger', 'btn-warning', 'btn-info');
@@ -435,27 +412,10 @@
               if (activePriority === 'Critical') priorityBtn.classList.add('btn-danger');
               else if (activePriority === 'Need') priorityBtn.classList.add('btn-warning');
               else if (activePriority === 'Want') priorityBtn.classList.add('btn-info');
+              else priorityBtn.classList.add('btn-outline-secondary');
             }
             filterGoals();
           });
-        });
-
-        resetBtn.addEventListener('click', () => {
-          activeTerm = null;
-          activePriority = null;
-          termBtn.innerText = 'Term: All';
-          priorityBtn.innerText = 'Priority: All';
-          
-          // Reset dropdowns to default grey outline
-          termBtn.classList.remove('btn-success', 'btn-primary', 'btn-dark');
-          termBtn.classList.add('btn-outline-secondary');
-          
-          priorityBtn.classList.remove('btn-danger', 'btn-warning', 'btn-info');
-          priorityBtn.classList.add('btn-outline-secondary');
-          
-          searchInput.value = '';
-          dateFilterInput.value = '';
-          filterGoals();
         });
 
         // Re-calculate after rendering
