@@ -157,6 +157,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="api-client.js"></script>
+    <script src="dom-utils.js"></script>
     <script>
       function checkAuthState() {
         const token = localStorage.getItem('token');
@@ -254,43 +255,114 @@
       // Render recommendations
       function renderRecommendations(recommendations) {
         const container = document.getElementById('recommendationsList');
+        if (!container) return;
         
-        container.innerHTML = recommendations.map((rec, index) => `
-          <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 feature-card">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <h5 class="card-title">${rec.strategy || `Strategy ${index + 1}`}</h5>
-                  <span class="badge bg-primary">${rec.risk_level || 'Medium'}</span>
-                </div>
-                
-                <p class="card-text text-muted small mb-3">
-                  ${rec.description || 'Investment strategy recommendation'}
-                </p>
-
-                <div class="mb-3">
-                  <div class="small text-muted mb-1">Expected Return:</div>
-                  <div class="h6 fw-bold text-primary">${rec.expected_return || 'N/A'}</div>
-                </div>
-
-                <div class="mb-3">
-                  <div class="small text-muted mb-1">Allocation:</div>
-                  <div class="progress" style="height: 8px;">
-                    <div class="progress-bar" role="progressbar" style="width: ${rec.allocation || 100}%"></div>
-                  </div>
-                  <small class="text-muted">${rec.allocation || 100}%</small>
-                </div>
-
-                <div class="pt-2">
-                  <small class="text-muted">
-                    <i class="bi bi-lightbulb me-1"></i>
-                    ${rec.recommendation || 'Consider this strategy based on your goals'}
-                  </small>
-                </div>
-              </div>
-            </div>
-          </div>
-        `).join('');
+        container.innerHTML = '';
+        
+        if (!recommendations || recommendations.length === 0) {
+          return;
+        }
+        
+        const fragment = document.createDocumentFragment();
+        
+        recommendations.forEach((rec, index) => {
+          const colDiv = document.createElement('div');
+          colDiv.className = 'col-md-6 col-lg-4 mb-4';
+          
+          const card = document.createElement('div');
+          card.className = 'card h-100 feature-card';
+          
+          const cardBody = document.createElement('div');
+          cardBody.className = 'card-body';
+          
+          // Header with title and badge
+          const headerDiv = document.createElement('div');
+          headerDiv.className = 'd-flex justify-content-between align-items-start mb-3';
+          
+          const title = document.createElement('h5');
+          title.className = 'card-title';
+          title.textContent = rec.strategy || `Strategy ${index + 1}`;
+          
+          const badge = document.createElement('span');
+          badge.className = 'badge bg-primary';
+          badge.textContent = rec.risk_level || 'Medium';
+          
+          headerDiv.appendChild(title);
+          headerDiv.appendChild(badge);
+          cardBody.appendChild(headerDiv);
+          
+          // Description
+          const desc = document.createElement('p');
+          desc.className = 'card-text text-muted small mb-3';
+          desc.textContent = rec.description || 'Investment strategy recommendation';
+          cardBody.appendChild(desc);
+          
+          // Expected Return
+          const returnLabel = document.createElement('div');
+          returnLabel.className = 'small text-muted mb-1';
+          returnLabel.textContent = 'Expected Return:';
+          
+          const returnValue = document.createElement('div');
+          returnValue.className = 'h6 fw-bold text-primary';
+          returnValue.textContent = rec.expected_return || 'N/A';
+          
+          const returnDiv = document.createElement('div');
+          returnDiv.className = 'mb-3';
+          returnDiv.appendChild(returnLabel);
+          returnDiv.appendChild(returnValue);
+          cardBody.appendChild(returnDiv);
+          
+          // Allocation with progress bar
+          const allocLabel = document.createElement('div');
+          allocLabel.className = 'small text-muted mb-1';
+          allocLabel.textContent = 'Allocation:';
+          
+          const progress = document.createElement('div');
+          progress.className = 'progress';
+          progress.style.height = '8px';
+          
+          const progressBar = document.createElement('div');
+          progressBar.className = 'progress-bar';
+          progressBar.setAttribute('role', 'progressbar');
+          const allocation = rec.allocation || 100;
+          progressBar.style.width = `${allocation}%`;
+          
+          progress.appendChild(progressBar);
+          
+          const allocPercent = document.createElement('small');
+          allocPercent.className = 'text-muted';
+          allocPercent.textContent = `${allocation}%`;
+          
+          const allocDiv = document.createElement('div');
+          allocDiv.className = 'mb-3';
+          allocDiv.appendChild(allocLabel);
+          allocDiv.appendChild(progress);
+          allocDiv.appendChild(allocPercent);
+          cardBody.appendChild(allocDiv);
+          
+          // Recommendation note
+          const noteDiv = document.createElement('div');
+          noteDiv.className = 'pt-2';
+          
+          const noteSmall = document.createElement('small');
+          noteSmall.className = 'text-muted';
+          
+          const noteIcon = document.createElement('i');
+          noteIcon.className = 'bi bi-lightbulb me-1';
+          
+          const noteText = document.createTextNode(rec.recommendation || 'Consider this strategy based on your goals');
+          
+          noteSmall.appendChild(noteIcon);
+          noteSmall.appendChild(noteText);
+          noteDiv.appendChild(noteSmall);
+          cardBody.appendChild(noteDiv);
+          
+          card.appendChild(cardBody);
+          colDiv.appendChild(card);
+          fragment.appendChild(colDiv);
+        });
+        
+        container.appendChild(fragment);
       }
 
       // Generate fallback recommendations based on goal characteristics
