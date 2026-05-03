@@ -10,7 +10,6 @@ const saveModal = new bootstrap.Modal(document.getElementById("saveModal"));
 let latestCalculation = null;
 
 // Handle navbar auth state
-/*
 function checkAuthState() {
   const token = localStorage.getItem('token');
   const authOnlyElements = document.querySelectorAll('.auth-only');
@@ -27,7 +26,6 @@ function checkAuthState() {
 }
 
 document.addEventListener('DOMContentLoaded', checkAuthState);
-*/
 
 // Read calculation history from localStorage
 function readHistory() {

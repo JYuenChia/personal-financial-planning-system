@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const path = require("path");
 const { connectDB } = require("./db");
 const apiRoutes = require("./routes");
 
@@ -11,6 +12,8 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(express.static(path.join(__dirname, "../../frontend")));
+
 app.get("/", (req, res) => {
   res.json({ message: "API server is running" });
 });
@@ -20,6 +23,11 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api", apiRoutes);
+
+// Serve index.html for root path (SPA)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/index.html"));
+});
 
 async function start() {
   await connectDB();
