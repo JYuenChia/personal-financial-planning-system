@@ -339,22 +339,53 @@
       document.addEventListener('DOMContentLoaded', () => {
         checkAuthState();
         
-        // --- DATA MOCKING (Replace with fetch('/api/goals') later) ---
-        const mockGoals = [
-          { id: 1, name: "Emergency Fund", term: "Short-term", priority: "Critical", category: "Basic", saved: 8000, target: 10000, date: "2026-12-31", monthly: 250 },
-          { id: 2, name: "New Home Downpayment", term: "Long-term", priority: "Need", category: "Basic", saved: 15000, target: 50000, date: "2032-06-30", monthly: 486 }
-        ];
-
-        let goals = [...mockGoals];
+        let goals = [];
         let editingGoalId = null;
 
         const addGoalModal = new bootstrap.Modal(document.getElementById('addGoalModal'));
         const deleteGoalModal = new bootstrap.Modal(document.getElementById('deleteGoalModal'));
         const goalToast = new bootstrap.Toast(document.getElementById('goalToast'));
 
-        function showToast(message) {
+        function showToast(message, isError = false) {
+          const toastEl = document.getElementById('goalToast');
+          toastEl.classList.remove('bg-dark', 'bg-danger', 'bg-success');
+          toastEl.classList.add(isError ? 'bg-danger' : 'bg-success');
           document.getElementById('toastMessage').innerText = message;
           goalToast.show();
+        }
+
+        const API_URL = 'http://localhost:3000/api';
+
+        async function fetchGoals() {
+          try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+              console.warn("No token found, redirecting to login...");
+              window.location.href = 'login.html';
+              return;
+            }
+            const response = await fetch(`${API_URL}/goals`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.status === 401) {
+              console.error("Token expired or invalid");
+              localStorage.removeItem('token');
+              window.location.href = 'login.html';
+              return;
+            }
+
+            const result = await response.json();
+            if (result.success) {
+              goals = result.data;
+              renderGoals(goals);
+            } else {
+              showToast(result.message || "Failed to fetch goals", true);
+            }
+          } catch (error) {
+            console.error("Fetch goals error:", error);
+            showToast("Server connection failed", true);
+          }
         }
 
         function getPriorityColor(priority) {
@@ -366,37 +397,47 @@
 
         function renderGoals(goalsArray) {
           const grid = document.getElementById('goalsGrid');
+          if (goalsArray.length === 0) {
+            grid.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No goals found. Click the + button to add one!</p></div>';
+            return;
+          }
+
           grid.innerHTML = goalsArray.map(goal => {
             const pColor = getPriorityColor(goal.priority);
-            const progress = Math.min(100, Math.round((goal.saved / goal.target) * 100));
+            const progress = Math.min(100, Math.round((goal.current_amount / goal.target_amount) * 100));
+            const targetDate = new Date(goal.target_date);
             
+            // Calculate monthly needed for display (approximate)
+            const diffMonths = Math.ceil((targetDate - new Date()) / (1000 * 60 * 60 * 24 * 30.44));
+            const monthly = diffMonths > 0 ? ((goal.target_amount - goal.current_amount) / diffMonths).toFixed(2) : "0.00";
+
             return `
-              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-id="${goal.id}" data-term="${goal.term}" data-priority="${goal.priority}" data-date="${goal.date}">
+              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-id="${goal.id}">
                 <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px;">
                   <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                       <span class="badge border border-${pColor} text-${pColor} px-3 py-2" style="font-size: 0.7rem; border-radius: 6px;">${goal.priority.toUpperCase()}</span>
-                      <span class="small text-muted fw-bold" style="font-size: 0.7rem;">${goal.term.toUpperCase()}</span>
+                      <span class="small text-muted fw-bold" style="font-size: 0.7rem;">${targetDate > new Date() ? 'ACTIVE' : 'EXPIRED'}</span>
                     </div>
-                    <h5 class="card-title fw-bold mb-3" style="color: var(--palette-text) !important;">${goal.name}</h5>
+                    <h5 class="card-title fw-bold mb-3" style="color: var(--palette-text) !important;">${goal.title}</h5>
                     
                     <div class="progress mb-2" style="height: 6px; border-radius: 3px; background-color: #eee;">
                       <div class="progress-bar bg-${pColor}" role="progressbar" style="width: ${progress}%;"></div>
                     </div>
                     
                     <div class="d-flex justify-content-between small fw-bold mb-4">
-                      <span class="text-muted">RM ${goal.saved.toLocaleString()}</span>
+                      <span class="text-muted">RM ${goal.current_amount.toLocaleString()} / RM ${goal.target_amount.toLocaleString()}</span>
                       <span style="color: var(--palette-primary);">${progress}%</span>
                     </div>
 
                     <div class="p-3 bg-light rounded-3 mb-4 border-0">
                       <div class="d-flex justify-content-between mb-2 small">
                         <span class="text-muted">Target Date</span>
-                        <span class="fw-bold" style="color: var(--palette-text);">${new Date(goal.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                        <span class="fw-bold" style="color: var(--palette-text);">${targetDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
                       </div>
                       <div class="d-flex justify-content-between small">
                         <span class="text-muted">Monthly Needed</span>
-                        <span class="fw-bold" style="color: var(--palette-primary);">RM ${goal.monthly}</span>
+                        <span class="fw-bold" style="color: var(--palette-primary);">RM ${monthly}</span>
                       </div>
                     </div>
 
@@ -427,14 +468,13 @@
           document.querySelector('#addGoalModal .modal-title').innerText = 'Update Financial Goal';
           document.querySelector('#goalForm button[type="submit"]').innerText = 'Save Changes';
 
-          document.getElementById('gCategory').value = goal.category;
-          document.getElementById('gName').value = goal.name;
-          document.getElementById('gDate').value = goal.date;
-          document.getElementById('gSaved').value = goal.saved;
-          document.getElementById('gTarget').value = goal.target;
+          document.getElementById('gName').value = goal.title;
+          document.getElementById('gDate').value = goal.target_date.split('T')[0];
+          document.getElementById('gSaved').value = goal.current_amount;
+          document.getElementById('gTarget').value = goal.target_amount;
           
-          const termRadio = document.querySelector(`input[name="gTerm"][value="${goal.term}"]`);
-          if (termRadio) termRadio.checked = true;
+          // Note: Category wasn't in backend schema yet, you might want to add it if needed
+          // For now we'll just handle what's there
 
           const priorityRadio = document.querySelector(`input[name="priority"][value="${goal.priority}"]`);
           if (priorityRadio) priorityRadio.checked = true;
@@ -448,19 +488,32 @@
           const goal = goals.find(g => g.id == id);
           if (!goal) return;
           deletingGoalId = id;
-          document.getElementById('deleteGoalName').innerText = goal.name;
+          document.getElementById('deleteGoalName').innerText = goal.title;
           deleteGoalModal.show();
         }
 
-        document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
-          if (deletingGoalId) {
-            goals = goals.filter(g => g.id != deletingGoalId);
-            renderGoals(goals);
-            filterGoals();
-            deleteGoalModal.hide();
-            showToast("Goal deleted successfully");
-            deletingGoalId = null;
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+          if (!deletingGoalId) return;
+          
+          try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/goals/${deletingGoalId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+              await fetchGoals();
+              deleteGoalModal.hide();
+              showToast("Goal deleted successfully");
+            } else {
+              showToast(result.message || "Delete failed", true);
+            }
+          } catch (error) {
+            showToast("Server error during delete", true);
           }
+          deletingGoalId = null;
         });
 
         // Reset modal for new goal
@@ -473,70 +526,70 @@
         });
 
         // Handle Form Submit (Create & Update)
-        document.getElementById('goalForm').addEventListener('submit', (e) => {
+        document.getElementById('goalForm').addEventListener('submit', async (e) => {
           e.preventDefault();
+          const token = localStorage.getItem('token');
+          
           const formData = {
-            name: document.getElementById('gName').value,
-            category: document.getElementById('gCategory').value,
-            term: document.querySelector('input[name="gTerm"]:checked').value,
-            date: document.getElementById('gDate').value,
+            title: document.getElementById('gName').value,
+            target_date: document.getElementById('gDate').value,
             priority: document.querySelector('input[name="priority"]:checked').value,
-            saved: parseFloat(document.getElementById('gSaved').value),
-            target: parseFloat(document.getElementById('gTarget').value),
-            monthly: document.getElementById('calcDisplay').innerText.replace('RM ', '')
+            current_amount: parseFloat(document.getElementById('gSaved').value) || 0,
+            target_amount: parseFloat(document.getElementById('gTarget').value),
+            risk_appetite: 3 // Default for now
           };
 
-          if (editingGoalId) {
-            const index = goals.findIndex(g => g.id == editingGoalId);
-            goals[index] = { ...goals[index], ...formData };
-            showToast("Goal updated successfully");
-          } else {
-            const newGoal = {
-              id: Date.now(),
-              ...formData
-            };
-            goals.push(newGoal);
-            showToast("Goal created successfully");
-          }
+          try {
+            const url = editingGoalId ? `${API_URL}/goals/${editingGoalId}` : `${API_URL}/goals`;
+            const method = editingGoalId ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+              method: method,
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(formData)
+            });
 
-          renderGoals(goals);
-          filterGoals();
-          addGoalModal.hide();
+            const result = await response.json();
+
+            if (result.success) {
+              await fetchGoals();
+              addGoalModal.hide();
+              showToast(editingGoalId ? "Goal updated" : "Goal created");
+            } else {
+              showToast(result.errors ? result.errors.join(', ') : result.message, true);
+            }
+          } catch (error) {
+            showToast("Server connection error", true);
+          }
         });
 
         // Initial render
-        renderGoals(goals);
+        fetchGoals();
 
         // --- SEARCH & FILTER LOGIC ---
         const searchInput = document.getElementById('goalSearch');
-        const resetBtn = document.getElementById('resetFilters');
         const filterItems = document.querySelectorAll('.dropdown-item');
         const termBtn = document.getElementById('termDropdownBtn');
         const priorityBtn = document.getElementById('priorityDropdownBtn');
         const dateFilterInput = document.getElementById('dateFilter');
 
-        let activeTerm = null;
         let activePriority = null;
 
         function filterGoals() {
           const searchTerm = searchInput.value.toLowerCase();
           const dateLimit = dateFilterInput.value ? new Date(dateFilterInput.value) : null;
-          const cards = document.querySelectorAll('.goal-card');
           
-          cards.forEach(card => {
-            const title = card.querySelector('.card-title').innerText.toLowerCase();
-            const term = card.getAttribute('data-term');
-            const priority = card.getAttribute('data-priority');
-            const goalDateStr = card.getAttribute('data-date');
-            const goalDate = new Date(goalDateStr);
-            
-            let matchesSearch = title.includes(searchTerm);
-            let matchesTerm = !activeTerm || activeTerm === 'All' || term === activeTerm;
-            let matchesPriority = !activePriority || activePriority === 'All' || priority === activePriority;
-            let matchesDate = !dateLimit || goalDate <= dateLimit;
-
-            card.style.display = (matchesSearch && matchesTerm && matchesPriority && matchesDate) ? 'block' : 'none';
+          const filtered = goals.filter(goal => {
+            const matchesSearch = goal.title.toLowerCase().includes(searchTerm);
+            const matchesPriority = !activePriority || activePriority === 'All' || goal.priority === activePriority;
+            const matchesDate = !dateLimit || new Date(goal.target_date) <= dateLimit;
+            return matchesSearch && matchesPriority && matchesDate;
           });
+          
+          renderGoals(filtered);
         }
 
         searchInput.addEventListener('input', filterGoals);
@@ -545,27 +598,12 @@
         filterItems.forEach(item => {
           item.addEventListener('click', (e) => {
             e.preventDefault();
-            if (item.hasAttribute('data-filter-term')) {
-              activeTerm = item.getAttribute('data-filter-term');
-              termBtn.innerText = activeTerm === 'All' ? 'Term: All' : `Term: ${activeTerm}`;
-              
-              // Remove old utility classes
-              termBtn.classList.remove('btn-outline-secondary', 'btn-secondary', 'btn-success', 'btn-primary', 'btn-dark');
-              
-              // Add specific color class
-              if (activeTerm === 'Short-term') termBtn.classList.add('btn-success');
-              else if (activeTerm === 'Mid-term') termBtn.classList.add('btn-primary');
-              else if (activeTerm === 'Long-term') termBtn.classList.add('btn-dark');
-              else termBtn.classList.add('btn-outline-secondary');
-              
-            } else if (item.hasAttribute('data-filter-priority')) {
+            if (item.hasAttribute('data-filter-priority')) {
               activePriority = item.getAttribute('data-filter-priority');
               priorityBtn.innerText = activePriority === 'All' ? 'Priority: All' : `Priority: ${activePriority}`;
               
-              // Remove old utility classes
-              priorityBtn.classList.remove('btn-outline-secondary', 'btn-secondary', 'btn-danger', 'btn-warning', 'btn-info');
+              priorityBtn.classList.remove('btn-outline-secondary', 'btn-danger', 'btn-warning', 'btn-info');
               
-              // Add specific color class
               if (activePriority === 'Critical') priorityBtn.classList.add('btn-danger');
               else if (activePriority === 'Need') priorityBtn.classList.add('btn-warning');
               else if (activePriority === 'Want') priorityBtn.classList.add('btn-info');
@@ -574,9 +612,6 @@
             filterGoals();
           });
         });
-
-        // Re-calculate after rendering
-        filterGoals();
 
         // --- CALCULATOR LOGIC & PREVIEW ---
         const gSaved = document.getElementById('gSaved');
@@ -591,7 +626,6 @@
           const target = parseFloat(gTarget.value) || 0;
           const dateVal = gDate.value;
 
-          // Progress Bar Preview
           if (target > 0) {
             const progress = Math.min(100, Math.round((saved / target) * 100));
             previewProgressBar.style.width = `${progress}%`;
@@ -601,7 +635,6 @@
             previewProgressText.innerText = '0%';
           }
 
-          // Monthly Calculation
           if (!dateVal || target <= saved || target === 0) {
             calcDisplay.innerText = "RM 0.00";
             return;
@@ -609,16 +642,14 @@
 
           const targetDate = new Date(dateVal);
           const now = new Date();
-          const diffTime = targetDate - now;
-          const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44));
+          const diffMonths = Math.ceil((targetDate - now) / (1000 * 60 * 60 * 24 * 30.44));
 
           if (diffMonths <= 0) {
             calcDisplay.innerText = "Invalid Date";
             return;
           }
 
-          const needed = target - saved;
-          const monthly = needed / diffMonths;
+          const monthly = (target - saved) / diffMonths;
           calcDisplay.innerText = `RM ${monthly.toFixed(2)}`;
         }
 

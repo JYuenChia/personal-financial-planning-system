@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.use(authRoutes);
 router.use(userRoutes);
-router.use(goalsRoutes);
+router.use("/goals", goalsRoutes);
 router.use(recommendationsRoutes);
 router.use(marketRoutes);
 router.use(calculatorRoutes);
