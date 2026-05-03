@@ -1,0 +1,225 @@
+const API_URL = "http://localhost:3000/api";
+
+let goals = [];
+let selectedGoalId = null;
+
+// Helper functions for UI state management
+function showElement(id) {
+  document.getElementById(id).style.display = "block";
+}
+
+function hideElement(id) {
+  document.getElementById(id).style.display = "none";
+}
+
+function showError(message) {
+  document.getElementById("errorMessage").textContent = message;
+  showElement("errorAlert");
+  hideElement("loadingSpinner");
+}
+
+function hideError() {
+  hideElement("errorAlert");
+}
+
+// Fetch user's goals
+async function loadGoals() {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/goals`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to load goals (${response.status})`,
+      );
+    }
+
+    const data = await response.json();
+    goals = data.goals;
+    populateGoalsSelect();
+
+    if (goals.length === 0) {
+      hideElement("recommendationsContainer");
+      hideElement("comparisonContainer");
+      showElement("emptyState");
+    } else {
+      hideElement("emptyState");
+    }
+  } catch (error) {
+    showError("Error loading goals: " + error.message);
+  }
+}
+
+// Populate goals dropdown
+function populateGoalsSelect() {
+  const select = document.getElementById("goalSelect");
+  select.innerHTML = '<option value="">-- Choose a goal --</option>';
+
+  goals.forEach((goal) => {
+    const option = document.createElement("option");
+    option.value = goal.id;
+    option.textContent = goal.title;
+    select.appendChild(option);
+  });
+}
+
+// Handle goal selection
+document.getElementById("goalSelect").addEventListener("change", (e) => {
+  selectedGoalId = e.target.value;
+  const loadBtn = document.getElementById("loadRecommendationsBtn");
+  const compareBtn = document.getElementById("compareStrategiesBtn");
+
+  if (selectedGoalId) {
+    loadBtn.disabled = false;
+    compareBtn.disabled = false;
+  } else {
+    loadBtn.disabled = true;
+    compareBtn.disabled = true;
+  }
+});
+
+// Load recommendations for selected goal
+async function loadRecommendations() {
+  if (!selectedGoalId) {
+    showError("Please select a goal");
+    return;
+  }
+
+  showElement("loadingSpinner");
+  hideError();
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(
+      `${API_URL}/recommendations/${selectedGoalId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.error ||
+          `Failed to load recommendations (${response.status})`,
+      );
+    }
+
+    const data = await response.json();
+    displayRecommendations(data);
+    hideElement("comparisonContainer");
+    showElement("recommendationsContainer");
+  } catch (error) {
+    showError("Error loading recommendations: " + error.message);
+  } finally {
+    hideElement("loadingSpinner");
+  }
+}
+
+// Display recommendation
+function displayRecommendations(data) {
+  document.getElementById("strategyGoalTitle").textContent = data.goalTitle;
+  document.getElementById("strategyTimeline").textContent = data.timelineYears;
+  document.getElementById("strategyMonthly").textContent =
+    data.monthlyContribution.toLocaleString();
+  document.getElementById("strategyName").textContent = data.name;
+  document.getElementById("strategyReturn").textContent = (
+    data.expectedAnnualReturn * 100
+  ).toFixed(1);
+  document.getElementById("strategyProjectedValue").textContent =
+    data.projectedFinalValue.toLocaleString();
+  document.getElementById("strategyDescription").textContent = data.description;
+
+  // Update asset allocation bars
+  const stocks = data.allocation.stocks;
+  const bonds = data.allocation.bonds;
+
+  document.getElementById("stocksAllocation").style.width = stocks + "%";
+  document.getElementById("stocksPercent").textContent = stocks;
+  document.getElementById("bondsAllocation").style.width = bonds + "%";
+  document.getElementById("bondsPercent").textContent = bonds;
+}
+
+// Compare strategies
+async function compareStrategies() {
+  if (!selectedGoalId) {
+    showError("Please select a goal");
+    return;
+  }
+
+  showElement("loadingSpinner");
+  hideError();
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/strategies/compare`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ goal_id: selectedGoalId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to compare strategies (${response.status})`,
+      );
+    }
+
+    const data = await response.json();
+    displayComparison(data);
+    hideElement("recommendationsContainer");
+    showElement("comparisonContainer");
+  } catch (error) {
+    showError("Error comparing strategies: " + error.message);
+  } finally {
+    hideElement("loadingSpinner");
+  }
+}
+
+// Display strategy comparison
+function displayComparison(data) {
+  document.getElementById("comparisonGoalTitle").textContent = data.goalTitle;
+  document.getElementById("comparisonTimeline").textContent =
+    data.timelineYears;
+
+  const tableBody = document.getElementById("comparisonTableBody");
+  tableBody.innerHTML = "";
+
+  const strategyOrder = ["aggressive", "balanced", "conservative"];
+
+  strategyOrder.forEach((key) => {
+    const strategy = data.strategies[key];
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><strong>${strategy.name}</strong></td>
+      <td>Stocks: ${strategy.allocation.stocks}% | Bonds: ${strategy.allocation.bonds}%</td>
+      <td>${(strategy.expectedAnnualReturn * 100).toFixed(1)}%</td>
+      <td>$${strategy.monthlyContribution.toLocaleString()}</td>
+      <td>$${strategy.projectedValue.toLocaleString()}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+// Event listeners
+document
+  .getElementById("loadRecommendationsBtn")
+  .addEventListener("click", loadRecommendations);
+document
+  .getElementById("compareStrategiesBtn")
+  .addEventListener("click", compareStrategies);
+
+// Initialize page
+document.addEventListener("DOMContentLoaded", () => {
+  loadGoals();
+});
