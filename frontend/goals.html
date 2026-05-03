@@ -193,74 +193,127 @@
 
     <!-- Modal for Adding Goals -->
     <div class="modal fade" id="addGoalModal" tabindex="-1" aria-hidden="true" style="z-index: 2050;">
-      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-height: 50vh; margin-top: 50px; max-width: 450px;">
-        <div class="modal-content border-0" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0">
           <div class="modal-header border-0 pb-0 pt-4 px-4">
-            <h5 class="modal-title fw-bold fs-4">New Financial Goal</h5>
+            <h5 class="modal-title fs-4">New Financial Goal</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body p-4">
             <form id="goalForm">
-              <!-- Step 1 & 2 -->
-              <div class="mb-3">
-                <label class="form-label small fw-bold text-muted text-uppercase">1. Goal Identity</label>
-                <input type="text" id="gName" class="form-control mb-2" placeholder="What are you saving for?" required>
-                <select id="gCategory" class="form-select small">
-                  <option value="Basic">Basic (Home, Car, Emergency)</option>
-                  <option value="Family">Family (Kids, Wedding, Education)</option>
-                  <option value="Retirement">Retirement (Pension, Early FIRE)</option>
-                </select>
-              </div>
-
-              <div class="row mb-3">
-                <div class="col-6">
-                  <label class="form-label small fw-bold text-muted text-uppercase">2. Term</label>
-                  <select id="gTerm" class="form-select">
-                    <option value="Short-term">Short (0-12 Mo)</option>
-                    <option value="Mid-term">Mid (1-5 Yr)</option>
-                    <option value="Long-term">Long (5 Yr+)</option>
+              <!-- Section 1: Goal Identity -->
+              <div class="form-section mb-4">
+                <label class="form-label small text-muted text-uppercase mb-3">Goal Identity</label>
+                <div class="mb-3">
+                  <select id="gCategory" class="form-select mb-2" required>
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="Basic">Basic (Home, Car, Emergency)</option>
+                    <option value="Family">Family (Kids, Wedding, Education)</option>
+                    <option value="Retirement">Retirement (Pension, Early FIRE)</option>
                   </select>
-                </div>
-                <div class="col-6">
-                  <label class="form-label small fw-bold text-muted text-uppercase">Target Date</label>
-                  <input type="date" id="gDate" class="form-control" required>
+                  <input type="text" id="gName" class="form-control" placeholder="Custom Goal Name" required>
                 </div>
               </div>
 
-              <div class="mb-3">
-                <label class="form-label small fw-bold text-muted text-uppercase">3. Priority</label>
+              <!-- Section 2: Term & Target Date -->
+              <div class="form-section mb-4">
+                <label class="form-label small text-muted text-uppercase mb-3">Term & Target Date</label>
+                <div class="term-picker d-flex gap-2 mb-3">
+                  <input type="radio" class="btn-check" name="gTerm" id="termShort" value="Short-term" checked>
+                  <label class="btn btn-outline-secondary btn-sm flex-grow-1" for="termShort">Short</label>
+                  
+                  <input type="radio" class="btn-check" name="gTerm" id="termMid" value="Mid-term">
+                  <label class="btn btn-outline-secondary btn-sm flex-grow-1" for="termMid">Mid</label>
+                  
+                  <input type="radio" class="btn-check" name="gTerm" id="termLong" value="Long-term">
+                  <label class="btn btn-outline-secondary btn-sm flex-grow-1" for="termLong">Long</label>
+                </div>
+                <input type="date" id="gDate" class="form-control" required>
+              </div>
+
+              <!-- Section 3: Priority -->
+              <div class="form-section mb-4">
+                <label class="form-label small text-muted text-uppercase mb-3">Priority</label>
                 <div class="d-flex gap-2">
                   <input type="radio" class="btn-check" name="priority" id="p1" value="Critical" checked>
-                  <label class="btn btn-outline-danger btn-sm flex-grow-1" for="p1">Critical</label>
+                  <label class="btn btn-priority-critical btn-sm flex-grow-1" for="p1">Critical</label>
+                  
                   <input type="radio" class="btn-check" name="priority" id="p2" value="Need">
-                  <label class="btn btn-outline-warning btn-sm flex-grow-1 text-dark" for="p2">Need</label>
+                  <label class="btn btn-priority-need btn-sm flex-grow-1" for="p2">Need</label>
+                  
                   <input type="radio" class="btn-check" name="priority" id="p3" value="Want">
-                  <label class="btn btn-outline-info btn-sm flex-grow-1 text-dark" for="p3">Want</label>
+                  <label class="btn btn-priority-want btn-sm flex-grow-1" for="p3">Want</label>
                 </div>
               </div>
 
-              <div class="row mb-4">
-                <div class="col-6">
-                  <label class="form-label small fw-bold text-muted text-uppercase">4. Saved (RM)</label>
-                  <input type="number" id="gSaved" class="form-control" value="0" min="0">
+              <!-- Section 4: Financial Inputs -->
+              <div class="form-section mb-4">
+                <label class="form-label small text-muted text-uppercase mb-3">Financial Inputs</label>
+                <div class="row g-2 mb-3">
+                  <div class="col-6">
+                    <label class="form-label extra-small text-muted">Target Amount (RM)</label>
+                    <input type="number" id="gTarget" class="form-control" placeholder="0.00" required min="1">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label extra-small text-muted">Current Savings (RM)</label>
+                    <input type="number" id="gSaved" class="form-control" value="0" min="0">
+                  </div>
                 </div>
-                <div class="col-6">
-                  <label class="form-label small fw-bold text-muted text-uppercase">Target (RM)</label>
-                  <input type="number" id="gTarget" class="form-control" placeholder="Target" required>
+                
+                <!-- Dynamic Preview -->
+                <div class="dynamic-preview p-3 rounded-3 mb-2">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Monthly Savings</span>
+                    <span class="fw-bold text-primary" id="calcDisplay">RM 0.00</span>
+                  </div>
+                  <div class="preview-progress-container position-relative mt-4">
+                    <div class="progress" style="height: 10px;">
+                      <div id="previewProgressBar" class="progress-bar" role="progressbar" style="width: 0%;"></div>
+                    </div>
+                    <div class="milestone-marker" style="left: 25%;" title="25%"></div>
+                    <div class="milestone-marker" style="left: 50%;" title="50%"></div>
+                    <div class="milestone-marker" style="left: 75%;" title="75%"></div>
+                  </div>
+                  <div class="d-flex justify-content-between mt-1">
+                    <span class="extra-small text-muted">Progress Preview</span>
+                    <span id="previewProgressText" class="extra-small text-muted">0%</span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Step 5: Monthly Calculation Preview -->
-              <div class="p-3 bg-secondary bg-opacity-10 rounded-4 mb-4" id="monthlyResult">
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="text-muted small fw-bold"><i class="bi bi-calculator me-2"></i>Estimated Monthly Savings:</span>
-                  <span class="fs-5 fw-bold text-primary" id="calcDisplay">RM 0.00</span>
-                </div>
+              <!-- Sticky Create Goal Button -->
+              <div class="modal-footer-sticky bg-white pt-3">
+                <button type="submit" class="btn btn-primary w-100 py-3 mt-2">Create Goal</button>
               </div>
-
-              <button type="submit" class="btn btn-warning w-100 py-3 fw-bold" style="border-radius: 12px; background-color: #ffc107; border: none; color: #212529;">Create Goal</button>
             </form>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteGoalModal" tabindex="-1" aria-hidden="true" style="z-index: 2060;">
+      <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0" style="border-radius: 20px;">
+          <div class="modal-body p-4 text-center">
+            <i class="bi bi-exclamation-triangle text-danger fs-1 mb-3 d-block"></i>
+            <h5 class="mb-3">Delete this goal?</h5>
+            <p class="text-muted small mb-4">Are you sure you want to delete "<span id="deleteGoalName"></span>"? This action cannot be undone.</p>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-secondary flex-grow-1 py-2" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" id="confirmDeleteBtn" class="btn btn-danger flex-grow-1 py-2">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index: 3000;">
+      <div id="goalToast" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 12px;">
+        <div class="d-flex">
+          <div class="toast-body" id="toastMessage"></div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
       </div>
     </div>
@@ -288,16 +341,27 @@
         
         // --- DATA MOCKING (Replace with fetch('/api/goals') later) ---
         const mockGoals = [
-          { name: "Emergency Fund", term: "Short-term", priority: "Critical", category: "Basic", description: "Building 6 months of expenses for safety.", saved: 8000, target: 10000, date: "2026-12-31", monthly: 250 },
-          { name: "New Home Downpayment", term: "Long-term", priority: "Need", category: "Basic", description: "Saving for a first family home.", saved: 15000, target: 50000, date: "2032-06-30", monthly: 486 }
+          { id: 1, name: "Emergency Fund", term: "Short-term", priority: "Critical", category: "Basic", saved: 8000, target: 10000, date: "2026-12-31", monthly: 250 },
+          { id: 2, name: "New Home Downpayment", term: "Long-term", priority: "Need", category: "Basic", saved: 15000, target: 50000, date: "2032-06-30", monthly: 486 }
         ];
 
-        function getPriorityColor(priority) {
-          return 'primary'; // All priority badges use the primary theme color
+        let goals = [...mockGoals];
+        let editingGoalId = null;
+
+        const addGoalModal = new bootstrap.Modal(document.getElementById('addGoalModal'));
+        const deleteGoalModal = new bootstrap.Modal(document.getElementById('deleteGoalModal'));
+        const goalToast = new bootstrap.Toast(document.getElementById('goalToast'));
+
+        function showToast(message) {
+          document.getElementById('toastMessage').innerText = message;
+          goalToast.show();
         }
 
-        function getTermColor(term) {
-          return 'outline-secondary'; // Term badges use a subtle outline
+        function getPriorityColor(priority) {
+          if (priority === 'Critical') return 'danger';
+          if (priority === 'Need') return 'warning';
+          if (priority === 'Want') return 'info';
+          return 'primary';
         }
 
         function renderGoals(goalsArray) {
@@ -307,17 +371,17 @@
             const progress = Math.min(100, Math.round((goal.saved / goal.target) * 100));
             
             return `
-              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-term="${goal.term}" data-priority="${goal.priority}" data-date="${goal.date}">
+              <div class="col-sm-6 col-lg-4 mb-4 goal-card" data-id="${goal.id}" data-term="${goal.term}" data-priority="${goal.priority}" data-date="${goal.date}">
                 <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px;">
                   <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                      <span class="badge border border-primary text-primary px-3 py-2" style="font-size: 0.7rem; border-radius: 6px;">${goal.priority.toUpperCase()}</span>
+                      <span class="badge border border-${pColor} text-${pColor} px-3 py-2" style="font-size: 0.7rem; border-radius: 6px;">${goal.priority.toUpperCase()}</span>
                       <span class="small text-muted fw-bold" style="font-size: 0.7rem;">${goal.term.toUpperCase()}</span>
                     </div>
                     <h5 class="card-title fw-bold mb-3" style="color: var(--palette-text) !important;">${goal.name}</h5>
                     
                     <div class="progress mb-2" style="height: 6px; border-radius: 3px; background-color: #eee;">
-                      <div class="progress-bar" role="progressbar" style="width: ${progress}%; background-color: var(--palette-primary);"></div>
+                      <div class="progress-bar bg-${pColor}" role="progressbar" style="width: ${progress}%;"></div>
                     </div>
                     
                     <div class="d-flex justify-content-between small fw-bold mb-4">
@@ -337,18 +401,111 @@
                     </div>
 
                     <div class="d-flex gap-2">
-                      <button class="btn btn-primary btn-sm flex-grow-1 py-2" style="border-radius: 8px;">Update Progress</button>
-                      <button class="btn btn-outline-danger btn-sm px-3" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
+                      <button class="btn btn-primary btn-sm flex-grow-1 py-2 update-btn" data-id="${goal.id}" style="border-radius: 8px;">Update Goal</button>
+                      <button class="btn btn-outline-danger btn-sm px-3 delete-btn" data-id="${goal.id}" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
                     </div>
                   </div>
                 </div>
               </div>
             `;
           }).join('');
+
+          // Re-attach event listeners
+          document.querySelectorAll('.update-btn').forEach(btn => {
+            btn.addEventListener('click', () => prepareUpdate(btn.getAttribute('data-id')));
+          });
+          document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => prepareDelete(btn.getAttribute('data-id')));
+          });
         }
 
+        function prepareUpdate(id) {
+          const goal = goals.find(g => g.id == id);
+          if (!goal) return;
+
+          editingGoalId = id;
+          document.querySelector('#addGoalModal .modal-title').innerText = 'Update Financial Goal';
+          document.querySelector('#goalForm button[type="submit"]').innerText = 'Save Changes';
+
+          document.getElementById('gCategory').value = goal.category;
+          document.getElementById('gName').value = goal.name;
+          document.getElementById('gDate').value = goal.date;
+          document.getElementById('gSaved').value = goal.saved;
+          document.getElementById('gTarget').value = goal.target;
+          
+          const termRadio = document.querySelector(`input[name="gTerm"][value="${goal.term}"]`);
+          if (termRadio) termRadio.checked = true;
+
+          const priorityRadio = document.querySelector(`input[name="priority"][value="${goal.priority}"]`);
+          if (priorityRadio) priorityRadio.checked = true;
+
+          updatePreview();
+          addGoalModal.show();
+        }
+
+        let deletingGoalId = null;
+        function prepareDelete(id) {
+          const goal = goals.find(g => g.id == id);
+          if (!goal) return;
+          deletingGoalId = id;
+          document.getElementById('deleteGoalName').innerText = goal.name;
+          deleteGoalModal.show();
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+          if (deletingGoalId) {
+            goals = goals.filter(g => g.id != deletingGoalId);
+            renderGoals(goals);
+            filterGoals();
+            deleteGoalModal.hide();
+            showToast("Goal deleted successfully");
+            deletingGoalId = null;
+          }
+        });
+
+        // Reset modal for new goal
+        document.querySelector('[data-bs-target="#addGoalModal"]').addEventListener('click', () => {
+          editingGoalId = null;
+          document.querySelector('#addGoalModal .modal-title').innerText = 'New Financial Goal';
+          document.querySelector('#goalForm button[type="submit"]').innerText = 'Create Goal';
+          document.getElementById('goalForm').reset();
+          updatePreview();
+        });
+
+        // Handle Form Submit (Create & Update)
+        document.getElementById('goalForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const formData = {
+            name: document.getElementById('gName').value,
+            category: document.getElementById('gCategory').value,
+            term: document.querySelector('input[name="gTerm"]:checked').value,
+            date: document.getElementById('gDate').value,
+            priority: document.querySelector('input[name="priority"]:checked').value,
+            saved: parseFloat(document.getElementById('gSaved').value),
+            target: parseFloat(document.getElementById('gTarget').value),
+            monthly: document.getElementById('calcDisplay').innerText.replace('RM ', '')
+          };
+
+          if (editingGoalId) {
+            const index = goals.findIndex(g => g.id == editingGoalId);
+            goals[index] = { ...goals[index], ...formData };
+            showToast("Goal updated successfully");
+          } else {
+            const newGoal = {
+              id: Date.now(),
+              ...formData
+            };
+            goals.push(newGoal);
+            showToast("Goal created successfully");
+          }
+
+          renderGoals(goals);
+          filterGoals();
+          addGoalModal.hide();
+        });
+
         // Initial render
-        renderGoals(mockGoals);
+        renderGoals(goals);
 
         // --- SEARCH & FILTER LOGIC ---
         const searchInput = document.getElementById('goalSearch');
@@ -421,18 +578,31 @@
         // Re-calculate after rendering
         filterGoals();
 
-        // --- CALCULATOR LOGIC (Step 5) ---
+        // --- CALCULATOR LOGIC & PREVIEW ---
         const gSaved = document.getElementById('gSaved');
         const gTarget = document.getElementById('gTarget');
         const gDate = document.getElementById('gDate');
         const calcDisplay = document.getElementById('calcDisplay');
+        const previewProgressBar = document.getElementById('previewProgressBar');
+        const previewProgressText = document.getElementById('previewProgressText');
 
-        function calculateMonthly() {
+        function updatePreview() {
           const saved = parseFloat(gSaved.value) || 0;
           const target = parseFloat(gTarget.value) || 0;
           const dateVal = gDate.value;
 
-          if (!dateVal || target <= saved) {
+          // Progress Bar Preview
+          if (target > 0) {
+            const progress = Math.min(100, Math.round((saved / target) * 100));
+            previewProgressBar.style.width = `${progress}%`;
+            previewProgressText.innerText = `${progress}%`;
+          } else {
+            previewProgressBar.style.width = '0%';
+            previewProgressText.innerText = '0%';
+          }
+
+          // Monthly Calculation
+          if (!dateVal || target <= saved || target === 0) {
             calcDisplay.innerText = "RM 0.00";
             return;
           }
@@ -443,16 +613,16 @@
           const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44));
 
           if (diffMonths <= 0) {
-            calcDisplay.innerText = "Check Date";
+            calcDisplay.innerText = "Invalid Date";
             return;
           }
 
           const needed = target - saved;
           const monthly = needed / diffMonths;
-          calcDisplay.innerText = `RM ${monthly.toFixed(2)}/mo`;
+          calcDisplay.innerText = `RM ${monthly.toFixed(2)}`;
         }
 
-        [gSaved, gTarget, gDate].forEach(el => el.addEventListener('input', calculateMonthly));
+        [gSaved, gTarget, gDate].forEach(el => el.addEventListener('input', updatePreview));
       });
     </script>
   </body>
