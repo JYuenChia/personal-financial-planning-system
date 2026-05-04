@@ -316,8 +316,9 @@ footer a:hover {
 /* Custom Styles for the Slidable Highlights */
 .carousel-control-prev,
 .carousel-control-next {
-  width: 40px; /* Slimmer control area */
-  filter: invert(100%) grayscale(100%); /* Makes white arrows dark for light themes */
+  width: 40px; 
+  filter: brightness(0) invert(1);
+  drop-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
 
 .carousel-control-prev {
@@ -339,10 +340,6 @@ footer a:hover {
 .recommendationsContainer {
   height: 100%;
   width: 100%;
-}
-.carousel-control-prev,
-.carousel-control-next {
-  display: none; /* Hide arrows on mobile for better touch swiping */
 }
 
 /* Goal Modal Enhancements */
