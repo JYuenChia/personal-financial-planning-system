@@ -12,6 +12,10 @@ function generateStrategy(goal) {
   const amountNeeded = goal.target_amount - goal.current_amount;
   const monthlyContribution = amountNeeded / (yearsUntilTarget * 12);
 
+  if (yearsUntilTarget <= 0) {
+    throw new Error("Invalid target date: Target date must be in the future.");
+  }
+
   const strategies = {
     aggressive: {
       name: "Aggressive Growth",
@@ -53,12 +57,23 @@ function generateStrategy(goal) {
       yearsUntilTarget *
       (1 + strategy.expectedAnnualReturn / 2);
 
+  // Calculate yearly growth data for the graph
+  const growthData = { years: [], values: [] };
+  let currentValue = goal.current_amount;
+  for (let year = 1; year <= Math.ceil(yearsUntilTarget); year++) {
+    currentValue += monthlyContribution * 12;
+    currentValue *= 1 + strategy.expectedAnnualReturn;
+    growthData.years.push(today.getFullYear() + year);
+    growthData.values.push(Math.round(currentValue));
+  }
+
   return {
     selectedStrategy,
     ...strategy,
     timelineYears: Math.round(yearsUntilTarget * 10) / 10,
     monthlyContribution: Math.round(monthlyContribution),
     projectedFinalValue: Math.round(projectedValue),
+    growthData,
     allStrategies: strategies,
   };
 }

@@ -44,8 +44,6 @@ async function loadGoals() {
     populateGoalsSelect();
 
     if (goals.length === 0) {
-      hideElement("recommendationsContainer");
-      hideElement("comparisonContainer");
       showElement("emptyState");
     } else {
       hideElement("emptyState");
@@ -69,19 +67,26 @@ function populateGoalsSelect() {
 }
 
 // Handle goal selection
-document.getElementById("goalSelect").addEventListener("change", (e) => {
+document.getElementById("goalSelect").addEventListener("change", async (e) => {
   selectedGoalId = e.target.value;
-  const loadBtn = document.getElementById("loadRecommendationsBtn");
-  const compareBtn = document.getElementById("compareStrategiesBtn");
 
   if (selectedGoalId) {
-    loadBtn.disabled = false;
-    compareBtn.disabled = false;
+    // Automatically load recommendations for the selected goal
+    loadRecommendations();
+    compareStrategies();
   } else {
-    loadBtn.disabled = true;
-    compareBtn.disabled = true;
+    hideElement("emptyState");
   }
 });
+function destroyExistingCharts() {
+  const chartContainer = document.getElementById("investmentGrowthChart");
+  if (chartContainer) {
+    const chartInstance = Chart.getChart(chartContainer);
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+  }
+}
 
 // Load recommendations for selected goal
 async function loadRecommendations() {
@@ -89,7 +94,7 @@ async function loadRecommendations() {
     showError("Please select a goal");
     return;
   }
-
+  destroyExistingCharts(); // Clear any existing charts before loading new data
   showElement("loadingSpinner");
   hideError();
 
@@ -114,8 +119,6 @@ async function loadRecommendations() {
 
     const data = await response.json();
     displayRecommendations(data);
-    hideElement("comparisonContainer");
-    showElement("recommendationsContainer");
   } catch (error) {
     showError("Error loading recommendations: " + error.message);
   } finally {
@@ -145,8 +148,61 @@ function displayRecommendations(data) {
   document.getElementById("stocksPercent").textContent = stocks;
   document.getElementById("bondsAllocation").style.width = bonds + "%";
   document.getElementById("bondsPercent").textContent = bonds;
+
+  // Validate and render investment growth graph
+  if (
+    data.growthData &&
+    Array.isArray(data.growthData.years) &&
+    Array.isArray(data.growthData.values)
+  ) {
+    renderInvestmentGrowth(data.growthData);
+  } else {
+    console.error("Invalid growth data: ", data.growthData);
+    showError("Unable to display investment growth graph due to missing data.");
+  }
 }
 
+// Render investment growth graph
+function renderInvestmentGrowth(data) {
+  const ctx = document.getElementById("investmentGrowthChart").getContext("2d");
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: data.years, // Array of years
+      datasets: [
+        {
+          label: "Investment Value",
+          data: data.values, // Array of values
+          borderColor: "#007bff",
+          backgroundColor: "rgba(0, 123, 255, 0.2)",
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Years",
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: "Value ($)",
+          },
+        },
+      },
+    },
+  });
+}
 // Compare strategies
 async function compareStrategies() {
   if (!selectedGoalId) {
@@ -177,8 +233,6 @@ async function compareStrategies() {
 
     const data = await response.json();
     displayComparison(data);
-    hideElement("recommendationsContainer");
-    showElement("comparisonContainer");
   } catch (error) {
     showError("Error comparing strategies: " + error.message);
   } finally {
@@ -188,7 +242,6 @@ async function compareStrategies() {
 
 // Display strategy comparison
 function displayComparison(data) {
-  document.getElementById("comparisonGoalTitle").textContent = data.goalTitle;
   document.getElementById("comparisonTimeline").textContent =
     data.timelineYears;
 
@@ -211,15 +264,18 @@ function displayComparison(data) {
   });
 }
 
-// Event listeners
-document
-  .getElementById("loadRecommendationsBtn")
-  .addEventListener("click", loadRecommendations);
-document
-  .getElementById("compareStrategiesBtn")
-  .addEventListener("click", compareStrategies);
+// Import Chart.js library
+const loadChartJs = async () => {
+  if (!window.Chart) {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/chart.js";
+    script.onload = () => console.log("Chart.js loaded");
+    document.head.appendChild(script);
+  }
+};
 
 // Initialize page
 document.addEventListener("DOMContentLoaded", () => {
+  loadChartJs();
   loadGoals();
 });
