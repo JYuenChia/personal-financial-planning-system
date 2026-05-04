@@ -218,6 +218,14 @@ h6 {
   z-index: 10;
 }
 
+
+
+/* If you also want to change the small uppercase labels: */
+.feature-card .text-accent {
+    color: #1a53bd !important;
+    opacity: 0.8; /* Optional: makes the label slightly softer than the price */
+}
+
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -327,6 +335,77 @@ footer a:hover {
 
 .carousel-control-next {
   right: -50px; /* Moves arrow outside the card area */
+}
+
+/* --- Global Dashboard Card Enhancements --- */
+.feature-card {
+    border-radius: 15px;
+    background: #ffffff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05); /* Very subtle border for maturity */
+}
+
+/* --- News Feed Section --- */
+
+/* 1. Typography & Links */
+.news-category-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: var(--palette-primary);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.news-headline, .news-link {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a1a !important; /* Deep charcoal, not pure black */
+    line-height: 1.3;
+    margin-bottom: 5px;
+    transition: color 0.2s ease;
+    text-decoration: none !important;
+}
+
+.news-headline:hover, .news-link:hover {
+    color: var(--palette-primary) !important;
+    text-decoration: underline !important;
+}
+
+/* 2. Image & Layout */
+.object-fit-cover {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px; /* Consistent rounding */
+}
+
+.list-group-item {
+    transition: background-color 0.2s ease;
+    border-color: rgba(0,0,0,0.05) !important; /* Lighter borders between news */
+}
+
+.list-group-item:hover {
+    background-color: #fbfbfb !important;
+}
+
+/* 3. Modern Scrollbar for the Sidebar */
+#news-feed::-webkit-scrollbar {
+    width: 4px;
+}
+
+#news-feed::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#news-feed::-webkit-scrollbar-thumb {
+    background: #e0e0e0;
+    border-radius: 10px;
+}
+
+#news-feed::-webkit-scrollbar-thumb:hover {
+    background: var(--palette-primary);
 }
 
 /* Ensure the carousel doesn't overflow on small screens */
