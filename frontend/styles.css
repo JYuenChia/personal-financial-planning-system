@@ -340,9 +340,9 @@ footer a:hover {
   height: 100%;
   width: 100%;
 }
-    .carousel-control-prev, .carousel-control-next {
-        display: none; /* Hide arrows on mobile for better touch swiping */
-    }
+.carousel-control-prev,
+.carousel-control-next {
+  display: none; /* Hide arrows on mobile for better touch swiping */
 }
 
 /* Goal Modal Enhancements */
@@ -354,7 +354,7 @@ footer a:hover {
 
 #addGoalModal .modal-content {
   border-radius: 20px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
   max-height: calc(100vh - 100px); /* Keep it within viewport height */
   overflow: hidden;
   background: white;
@@ -427,7 +427,7 @@ footer a:hover {
   color: var(--palette-text) !important;
 }
 
-#addGoalModal .form-control, 
+#addGoalModal .form-control,
 #addGoalModal .form-select {
   border-radius: 10px;
   padding: 0.6rem 1rem;
