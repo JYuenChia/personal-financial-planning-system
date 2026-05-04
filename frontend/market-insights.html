@@ -125,7 +125,7 @@
         <div class="col-lg-8 mb-4">
             <div class="card feature-card p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold m-0">Market Trend Visualization</h5>
+                    <h5 class="fw-bold m-0 text-primary" >Market Trend Visualization</h5>
                     <div class="btn-group btn-group-sm">
                         <button class="btn btn-outline-primary active" id="btn-stocks">Stocks</button>
                         <button class="btn btn-outline-primary" id="btn-crypto">Crypto</button>
@@ -260,7 +260,7 @@
 
         newsContainer.innerHTML = mockNews.map(item => `
             <a href="#" class="list-group-item list-group-item-action border-0 py-3">
-                <h6 class="mb-1 fw-bold" style="color: var(--palette-text);">${item.title}</h6>
+                <h6 class="mb-1 fw-bold text-primary" style="color: var(--palette-text);">${item.title}</h6>
                 <small class="text-accent">${item.time}</small>
             </a>
         `).join('');

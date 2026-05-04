@@ -340,3 +340,107 @@ footer a:hover {
   height: 100%;
   width: 100%;
 }
+    .carousel-control-prev, .carousel-control-next {
+        display: none; /* Hide arrows on mobile for better touch swiping */
+    }
+}
+
+/* Goal Modal Enhancements */
+#addGoalModal .modal-dialog {
+  max-width: 500px;
+  width: 90%;
+  margin: 1.75rem auto;
+}
+
+#addGoalModal .modal-content {
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  max-height: calc(100vh - 100px); /* Keep it within viewport height */
+  overflow: hidden;
+  background: white;
+}
+
+#addGoalModal .modal-body {
+  padding-bottom: 0 !important; /* Managed by sticky footer */
+}
+
+.extra-small {
+  font-size: 0.75rem;
+}
+
+.btn-priority-critical {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+.btn-check:checked + .btn-priority-critical {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-priority-need {
+  color: #fd7e14;
+  border-color: #fd7e14;
+}
+.btn-check:checked + .btn-priority-need {
+  background-color: #fd7e14;
+  color: white;
+}
+
+.btn-priority-want {
+  color: #0dcaf0;
+  border-color: #0dcaf0;
+}
+.btn-check:checked + .btn-priority-want {
+  background-color: #0dcaf0;
+  color: white;
+}
+
+.dynamic-preview {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.milestone-marker {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 18px;
+  background: #dee2e6;
+  z-index: 1;
+}
+
+.modal-footer-sticky {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  border-top: 1px solid #eee;
+  padding-bottom: 1.5rem !important;
+}
+
+#addGoalModal label {
+  font-weight: 400; /* No bold */
+}
+
+#addGoalModal h5 {
+  color: var(--palette-text) !important;
+}
+
+#addGoalModal .form-control, 
+#addGoalModal .form-select {
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  border: 1px solid #dee2e6;
+}
+
+#addGoalModal .form-control:focus {
+  box-shadow: 0 0 0 0.25rem rgba(53, 88, 114, 0.1);
+  border-color: var(--palette-primary);
+}
+
+.recommendationsContainer {
+  height: 100%;
+  width: 100%;
+}
