@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="styles.css" />
     <style>
+      #termDropdownBtn, #priorityDropdownBtn {
+        font-weight: 400 !important;
+      }
       .btn-primary:focus, .btn-primary:active {
         background-color: var(--palette-primary) !important;
         border-color: var(--palette-primary) !important;
@@ -207,11 +210,15 @@
                 <div class="mb-3">
                   <select id="gCategory" class="form-select mb-2" required>
                     <option value="" disabled selected>Select Category</option>
-                    <option value="Basic">Basic (Home, Car, Emergency)</option>
-                    <option value="Family">Family (Kids, Wedding, Education)</option>
-                    <option value="Retirement">Retirement (Pension, Early FIRE)</option>
+                    <option value="Home">Home (Downpayment, Reno)</option>
+                    <option value="Car">Car (Dream Car, Maintenance)</option>
+                    <option value="Emergency Fund">Emergency Fund</option>
+                    <option value="Wedding">Wedding</option>
+                    <option value="Education">Education</option>
+                    <option value="Retirement">Retirement</option>
+                    <option value="Other">Other</option>
                   </select>
-                  <input type="text" id="gName" class="form-control" placeholder="Custom Goal Name" required>
+                  <input type="text" id="gName" class="form-control" placeholder="Custom Goal Name" style="display: none;">
                 </div>
               </div>
 
@@ -398,7 +405,7 @@
         function renderGoals(goalsArray) {
           const grid = document.getElementById('goalsGrid');
           if (goalsArray.length === 0) {
-            grid.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No goals found. Click the + button to add one!</p></div>';
+            grid.innerHTML = '<div class="col-12 text-center py-5"><p class="text-white">No goals found. Click the + button to add one!</p></div>';
             return;
           }
 
@@ -468,16 +475,32 @@
           document.querySelector('#addGoalModal .modal-title').innerText = 'Update Financial Goal';
           document.querySelector('#goalForm button[type="submit"]').innerText = 'Save Changes';
 
-          document.getElementById('gName').value = goal.title;
+          const categorySelect = document.getElementById('gCategory');
+          const customNameInput = document.getElementById('gName');
+          
+          // Check if the title matches one of our predefined categories
+          const predefinedOptions = Array.from(categorySelect.options).map(opt => opt.value);
+          if (predefinedOptions.includes(goal.title)) {
+            categorySelect.value = goal.title;
+            customNameInput.style.display = 'none';
+            customNameInput.required = false;
+            customNameInput.value = '';
+          } else {
+            categorySelect.value = 'Other';
+            customNameInput.style.display = 'block';
+            customNameInput.required = true;
+            customNameInput.value = goal.title;
+          }
+
           document.getElementById('gDate').value = goal.target_date.split('T')[0];
           document.getElementById('gSaved').value = goal.current_amount;
           document.getElementById('gTarget').value = goal.target_amount;
-          
-          // Note: Category wasn't in backend schema yet, you might want to add it if needed
-          // For now we'll just handle what's there
 
           const priorityRadio = document.querySelector(`input[name="priority"][value="${goal.priority}"]`);
           if (priorityRadio) priorityRadio.checked = true;
+
+          const termRadio = document.querySelector(`input[name="gTerm"][value="${goal.term}"]`);
+          if (termRadio) termRadio.checked = true;
 
           updatePreview();
           addGoalModal.show();
@@ -522,6 +545,8 @@
           document.querySelector('#addGoalModal .modal-title').innerText = 'New Financial Goal';
           document.querySelector('#goalForm button[type="submit"]').innerText = 'Create Goal';
           document.getElementById('goalForm').reset();
+          document.getElementById('gName').style.display = 'none';
+          document.getElementById('gName').required = false;
           updatePreview();
         });
 
@@ -530,10 +555,16 @@
           e.preventDefault();
           const token = localStorage.getItem('token');
           
+          let goalTitle = document.getElementById('gCategory').value;
+          if (goalTitle === 'Other') {
+            goalTitle = document.getElementById('gName').value;
+          }
+
           const formData = {
-            title: document.getElementById('gName').value,
+            title: goalTitle,
             target_date: document.getElementById('gDate').value,
             priority: document.querySelector('input[name="priority"]:checked').value,
+            term: document.querySelector('input[name="gTerm"]:checked').value,
             current_amount: parseFloat(document.getElementById('gSaved').value) || 0,
             target_amount: parseFloat(document.getElementById('gTarget').value),
             risk_appetite: 3 // Default for now
@@ -577,6 +608,7 @@
         const dateFilterInput = document.getElementById('dateFilter');
 
         let activePriority = null;
+        let activeTerm = null;
 
         function filterGoals() {
           const searchTerm = searchInput.value.toLowerCase();
@@ -586,7 +618,20 @@
             const matchesSearch = goal.title.toLowerCase().includes(searchTerm);
             const matchesPriority = !activePriority || activePriority === 'All' || goal.priority === activePriority;
             const matchesDate = !dateLimit || new Date(goal.target_date) <= dateLimit;
-            return matchesSearch && matchesPriority && matchesDate;
+            
+            // Use goal.term if it exists, otherwise fallback to calculation
+            let goalTerm = goal.term;
+            if (!goalTerm) {
+              const targetDate = new Date(goal.target_date);
+              const diffMonths = Math.ceil((targetDate - new Date()) / (1000 * 60 * 60 * 24 * 30.44));
+              goalTerm = "Short-term";
+              if (diffMonths > 60) goalTerm = "Long-term";
+              else if (diffMonths > 12) goalTerm = "Mid-term";
+            }
+
+            const matchesTerm = !activeTerm || activeTerm === 'All' || goalTerm === activeTerm;
+            
+            return matchesSearch && matchesPriority && matchesDate && matchesTerm;
           });
           
           renderGoals(filtered);
@@ -602,24 +647,49 @@
               activePriority = item.getAttribute('data-filter-priority');
               priorityBtn.innerText = activePriority === 'All' ? 'Priority: All' : `Priority: ${activePriority}`;
               
-              priorityBtn.classList.remove('btn-outline-secondary', 'btn-danger', 'btn-warning', 'btn-info');
+              priorityBtn.classList.remove('btn-outline-secondary', 'btn-danger', 'btn-warning', 'btn-info', 'fw-bold');
               
               if (activePriority === 'Critical') priorityBtn.classList.add('btn-danger');
               else if (activePriority === 'Need') priorityBtn.classList.add('btn-warning');
               else if (activePriority === 'Want') priorityBtn.classList.add('btn-info');
               else priorityBtn.classList.add('btn-outline-secondary');
             }
+
+            if (item.hasAttribute('data-filter-term')) {
+              activeTerm = item.getAttribute('data-filter-term');
+              termBtn.innerText = activeTerm === 'All' ? 'Term: All' : `Term: ${activeTerm}`;
+              
+              termBtn.classList.remove('btn-outline-secondary', 'btn-primary', 'fw-bold');
+              if (activeTerm !== 'All') {
+                termBtn.classList.add('btn-primary');
+                termBtn.classList.remove('fw-bold');
+              } else {
+                termBtn.classList.add('btn-outline-secondary');
+              }
+            }
             filterGoals();
           });
         });
 
-        // --- CALCULATOR LOGIC & PREVIEW ---
         const gSaved = document.getElementById('gSaved');
         const gTarget = document.getElementById('gTarget');
         const gDate = document.getElementById('gDate');
+        const gCategory = document.getElementById('gCategory');
+        const gName = document.getElementById('gName');
         const calcDisplay = document.getElementById('calcDisplay');
         const previewProgressBar = document.getElementById('previewProgressBar');
         const previewProgressText = document.getElementById('previewProgressText');
+
+        gCategory.addEventListener('change', () => {
+          if (gCategory.value === 'Other') {
+            gName.style.display = 'block';
+            gName.required = true;
+          } else {
+            gName.style.display = 'none';
+            gName.required = false;
+            gName.value = '';
+          }
+        });
 
         function updatePreview() {
           const saved = parseFloat(gSaved.value) || 0;

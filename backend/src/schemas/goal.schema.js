@@ -39,6 +39,11 @@ const goalSchema = new mongoose.Schema(
       min: [1, "Risk appetite must be at least 1"],
       max: [5, "Risk appetite cannot exceed 5"],
     },
+    term: {
+      type: String,
+      enum: ["Short-term", "Mid-term", "Long-term"],
+      required: false,
+    },
   },
   {
     timestamps: {
