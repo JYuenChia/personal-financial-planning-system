@@ -49,7 +49,7 @@ function renderHistory() {
   if (!history.length) {
     historyBody.innerHTML = `
       <tr>
-        <td colspan="6" class="text-muted text-center">No saved calculations yet.</td>
+        <td colspan="7" class="text-muted text-center">No saved calculations yet.</td>
       </tr>
     `;
     return;
@@ -64,6 +64,7 @@ function renderHistory() {
         <td>${Number(item.years).toFixed(2)}</td>
         <td>${Number(item.finalAmount).toFixed(2)}</td>
         <td>${Number(item.roi).toFixed(2)}</td>
+        <td>${Number(item.roiPercent).toFixed(2)}</td>
       </tr>
     `)
     .join("");
@@ -86,13 +87,15 @@ roiForm.addEventListener("submit", function(e) {
   // Calculation
   let finalAmount = initial * Math.pow((1 + rate), years);
   let roi = finalAmount - initial;
+  let roiPercent = (roi / initial) * 100;
 
   let resultDiv = document.getElementById("result");
   resultDiv.classList.remove("d-none");
 
   resultDiv.innerHTML = `
     <strong>Final Amount:</strong> RM ${finalAmount.toFixed(2)} <br>
-    <strong>Profit (ROI):</strong> RM ${roi.toFixed(2)}
+    <strong>Profit (ROI):</strong> RM ${roi.toFixed(2)} <br>
+    <strong>ROI Percentage:</strong> ${roiPercent.toFixed(2)}%
   `;
 
   latestCalculation = {
@@ -100,7 +103,8 @@ roiForm.addEventListener("submit", function(e) {
     ratePercent: rate * 100,
     years,
     finalAmount,
-    roi
+    roi,
+    roiPercent
   };
 
   saveBtn.disabled = false;
