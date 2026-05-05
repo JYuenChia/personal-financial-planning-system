@@ -125,11 +125,16 @@
         <div class="col-lg-8 mb-4">
             <div class="card feature-card p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold m-0">Market Trend Visualization</h5>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary active" id="btn-stocks">Stocks</button>
-                        <button class="btn btn-outline-primary" id="btn-crypto">Crypto</button>
-                    </div>
+                    <h5 class="fw-bold m-0" style="color: #1a53bd !important; font-size: 1.25rem;">
+    <i class="bi bi-graph-up-arrow me-2"></i>Market Trend Visualization
+</h5>
+                    <select class="form-select form-select-sm w-auto border-0 shadow-sm" id="assetSelector" style="background-color: #f8f9fa; font-weight: 600;">
+                      <option value="sp500">S&P 500 Index</option>
+                      <option value="btc">Bitcoin (BTC)</option>
+                      <option value="eth">Ethereum (ETH)</option>
+                      <option value="gold">Gold (XAU)</option>
+                      <option value="aapl">Apple (AAPL)</option>
+                  </select>
                 </div>
                 <div style="position: relative; height:350px;">
                     <canvas id="marketChart"></canvas>
@@ -138,17 +143,49 @@
         </div>
 
         <div class="col-lg-4 mb-4">
-            <div class="card feature-card h-100 overflow-hidden">
-                <div class="card-header bg-primary text-white p-3 border-0">
-                    <h5 class="m-0 fs-6 fw-bold"><i class="bi bi-newspaper me-2"></i>Financial News Feed</h5>
-                </div>
-                <div class="list-group list-group-flush overflow-auto" id="news-feed" style="max-height: 400px;">
-                    </div>
-            </div>
-        </div>
+          <div class="card feature-card h-100 border-0 shadow-sm">
+              <div class="p-4 pb-0">
+                  <h5 class="fw-bold text-primary m-0 d-flex align-items-center" style="color: #1a53bd !important;">
+                      <i class="bi bi- megaphone-fill me-2 text-primary" style="font-size: 1.2rem;"></i>
+                      News
+                  </h5>
+                  <hr class="my-3 opacity-25">
+              </div>
+              <div class="list-group list-group-flush overflow-auto px-2" id="news-feed" style="max-height: 450px;">
+                  </div>
+          </div>
+      </div>
+
     </div>
   </main>
 
+  <!-- immsersive News Section -->
+<div id="bottom-news-display" class="container mt-5 pb-5" style="display: none;">
+    <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 20px; background-color: #fff;">
+        <div class="row g-0">
+            
+            <!-- Left Side: Immersive Blurred Image -->
+            <div class="col-md-5 d-none d-md-block position-relative overflow-hidden">
+                <!-- Wrapper ensures blur doesn't bleed out of the card -->
+                <div class="blur-wrapper" style="position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; filter: blur(10px); z-index: 1;">
+                    <div id="news-sidebar-img" style="width: 100%; height: 100%; background-size: cover; background-position: center;"></div>
+                </div>
+                <!-- Subtle vignette overlay for depth -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 100%); z-index: 2;"></div>
+            </div>
+            
+            <div class="col-md-7">
+                <div class="card-body p-4 p-md-5">
+                    <div id="bottom-content-area">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  
   <footer class="py-5">
     <div class="container">
       <div class="row align-items-center">
@@ -195,161 +232,22 @@
     </a>
   </footer>  
 
+  <div class="modal fade" id="newsModal" tabindex="-1" aria-labelledby="newsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+        <div class="modal-header border-0 pb-0">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4 pt-0" id="modal-content-area">
+          </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="api-client.js"></script>
-  <script src="dom-utils.js"></script>
-    <script>
-      // Function to handle Navbar state
-      function checkAuthState() {
-        const token = localStorage.getItem('token');
-        const authOnlyElements = document.querySelectorAll('.auth-only');
-        const guestOnlyElements = document.querySelectorAll('.guest-only');
-
-        if (token) {
-          authOnlyElements.forEach(el => el.style.display = 'block');
-          guestOnlyElements.forEach(el => el.style.display = 'none');
-        } else {
-          authOnlyElements.forEach(el => el.style.display = 'none');
-          guestOnlyElements.forEach(el => el.style.display = 'block');
-          window.location.href = 'login.html';
-        }
-      }
-
-      document.addEventListener('DOMContentLoaded', checkAuthState);
-    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <script>
-    // ==================== API INTEGRATION ====================
-    let marketChart;
-
-    function initChart(data = null) {
-      const ctx = document.getElementById('marketChart');
-      if (!ctx) return;
-      
-      const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--palette-primary').trim() || '#81A6C6';
-
-      // Use real data if provided, otherwise use fallback
-      const chartData = data || {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        values: [4200, 4250, 4100, 4350, 4400, 4380, 4500]
-      };
-
-      marketChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: chartData.labels,
-          datasets: [{
-            label: 'Market Value',
-            data: chartData.values,
-            borderColor: primaryColor,
-            backgroundColor: primaryColor + '33',
-            fill: true,
-            tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } }
-        }
-      });
-    }
-
-    // Load market news from API
-    async function loadNews() {
-      const newsContainer = document.getElementById('news-feed');
-      
-      try {
-        showLoading(true);
-        const response = await apiClient.getMarketNews();
-        const news = response.news || [];
-
-        if (news.length === 0) {
-          throw new Error('No news data received');
-        }
-
-        renderNews(news, newsContainer);
-      } catch (error) {
-        console.warn('Error loading news, using fallback:', error.message);
-        // Fallback to mock data
-        const mockNews = [
-          { title: "Market Rallies as Inflation Cools", source: "Reuters", url: null },
-          { title: "Tech Giants Announce Q1 Earnings", source: "Bloomberg", url: null },
-          { title: "New Investment Strategies for 2025", source: "Forbes", url: null },
-          { title: "Cryptocurrency Regulations Update", source: "CoinDesk", url: null }
-        ];
-
-        renderNews(mockNews, newsContainer);
-      } finally {
-        showLoading(false);
-      }
-    }
-
-    // Safe news rendering function
-    function renderNews(news, container) {
-      if (!container) return;
-      
-      container.innerHTML = '';
-      
-      const fragment = document.createDocumentFragment();
-      
-      news.forEach(item => {
-        const link = document.createElement('a');
-        link.className = 'list-group-item list-group-item-action border-0 py-3';
-        link.href = sanitizeUrl(item.url || '#');
-        if (item.url) {
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-        }
-        
-        const title = document.createElement('h6');
-        title.className = 'mb-1 fw-bold';
-        title.style.color = 'var(--palette-text)';
-        title.textContent = item.title || 'Untitled';
-        
-        const source = document.createElement('small');
-        source.className = 'text-accent';
-        source.textContent = item.source || 'Financial News';
-        
-        link.appendChild(title);
-        link.appendChild(source);
-        fragment.appendChild(link);
-      });
-      
-      container.appendChild(fragment);
-    }
-
-    // Load market trends and update chart
-    async function loadMarketTrends() {
-      try {
-        const response = await apiClient.getMarketTrends();
-        const trends = response.trends || null;
-
-        if (trends && trends.labels && trends.values) {
-          initChart({
-            labels: trends.labels,
-            values: trends.values
-          });
-        } else {
-          throw new Error('Invalid trends data');
-        }
-      } catch (error) {
-        console.warn('Error loading trends, using fallback:', error.message);
-        initChart(); // Use default/fallback data
-      }
-    }
-
-    // Initialize page
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof checkAuthState === "function") {
-        checkAuthState();
-      }
-      
-      loadMarketTrends();
-      loadNews();
-    });
-  </script>
+    <script src="market-insights.js"></script>
   </body>
 </html>
