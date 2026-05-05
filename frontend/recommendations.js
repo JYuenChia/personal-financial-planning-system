@@ -40,7 +40,7 @@ async function loadGoals() {
     }
 
     const data = await response.json();
-    goals = data.goals;
+    goals = data.data || data.goals || [];
     populateGoalsSelect();
 
     if (goals.length === 0) {
