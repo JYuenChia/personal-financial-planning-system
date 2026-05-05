@@ -1,5 +1,4 @@
 // Initialize variables
-const HISTORY_KEY = "roiCalculationHistory";
 const saveBtn = document.getElementById("saveBtn");
 const saveForm = document.getElementById("saveForm");
 const calcTitleInput = document.getElementById("calcTitle");
@@ -8,47 +7,26 @@ const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 const roiForm = document.getElementById("roiForm");
 const saveModal = new bootstrap.Modal(document.getElementById("saveModal"));
 let latestCalculation = null;
+let allCalculations = [];
 
-// Handle navbar auth state
-/*
-function checkAuthState() {
-  const token = localStorage.getItem('token');
-  const authOnlyElements = document.querySelectorAll('.auth-only');
-  const guestOnlyElements = document.querySelectorAll('.guest-only');
-
-  if (token) {
-    authOnlyElements.forEach(el => el.style.display = 'block');
-    guestOnlyElements.forEach(el => el.style.display = 'none');
-  } else {
-    authOnlyElements.forEach(el => el.style.display = 'none');
-    guestOnlyElements.forEach(el => el.style.display = 'block');
-    window.location.href = 'login.html';
-  }
-}
-
-document.addEventListener('DOMContentLoaded', checkAuthState);
-*/
-
-// Read calculation history from localStorage
-function readHistory() {
+// Load calculations from backend
+async function loadCalculations() {
   try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const response = await apiClient.getCalculations();
+    if (response.success) {
+      allCalculations = response.calculations || [];
+      renderHistory();
+    }
   } catch (error) {
-    return [];
+    showError("Failed to load calculation history");
+    allCalculations = [];
+    renderHistory();
   }
-}
-
-// Write calculation history to localStorage
-function writeHistory(history) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
 // Render history table
 function renderHistory() {
-  const history = readHistory();
-
-  if (!history.length) {
+  if (!allCalculations.length) {
     historyBody.innerHTML = `
       <tr>
         <td colspan="6" class="text-muted text-center">No saved calculations yet.</td>
@@ -57,15 +35,15 @@ function renderHistory() {
     return;
   }
 
-  historyBody.innerHTML = history
+  historyBody.innerHTML = allCalculations
     .map(item => `
       <tr>
         <td>${item.title}</td>
         <td>${Number(item.initial).toFixed(2)}</td>
-        <td>${Number(item.ratePercent).toFixed(2)}</td>
+        <td>${Number(item.rate_percent).toFixed(2)}</td>
         <td>${Number(item.years).toFixed(2)}</td>
-        <td>${Number(item.finalAmount).toFixed(2)}</td>
-        <td>${Number(item.roi).toFixed(2)}</td>
+        <td>${Number(item.final_amount).toFixed(2)}</td>
+        <td>${Number(item.profit).toFixed(2)}</td>
       </tr>
     `)
     .join("");
@@ -120,24 +98,31 @@ saveBtn.addEventListener("click", function() {
 });
 
 // Handle save form submission
-saveForm.addEventListener("submit", function(e) {
+saveForm.addEventListener("submit", async function(e) {
   e.preventDefault();
   const title = calcTitleInput.value.trim();
 
   if (!title) {
-    alert("Please enter a title.");
+    showError("Please enter a title.");
     return;
   }
 
-  const history = readHistory();
-  history.unshift({
-    title,
-    ...latestCalculation
-  });
-
-  writeHistory(history);
-  renderHistory();
-  saveModal.hide();
+  try {
+    showLoading(true);
+    const response = await apiClient.saveCalculation(title, latestCalculation);
+    
+    if (response.success) {
+      showSuccess("Calculation saved successfully!");
+      await loadCalculations();
+      saveModal.hide();
+    } else {
+      showError("Failed to save calculation");
+    }
+  } catch (error) {
+    showError("Error saving calculation");
+  } finally {
+    showLoading(false);
+  }
 });
 
 // Handle form reset
@@ -148,12 +133,30 @@ roiForm.addEventListener("reset", function() {
 });
 
 // Handle clear history button
-clearHistoryBtn.addEventListener("click", function() {
-  localStorage.removeItem(HISTORY_KEY);
-  renderHistory();
+clearHistoryBtn.addEventListener("click", async function() {
+  if (!confirm("Are you sure you want to clear all calculation history? This cannot be undone.")) {
+    return;
+  }
+
+  try {
+    showLoading(true);
+    const response = await apiClient.clearAllCalculations();
+    
+    if (response.success) {
+      showSuccess("All calculations cleared!");
+      await loadCalculations();
+    } else {
+      showError("Failed to clear calculations");
+    }
+  } catch (error) {
+    showError("Error clearing calculations");
+  } finally {
+    showLoading(false);
+  }
 });
 
 // Initialize on page load
 document.addEventListener("DOMContentLoaded", function() {
-  renderHistory();
+  checkAuthState();
+  loadCalculations();
 });
