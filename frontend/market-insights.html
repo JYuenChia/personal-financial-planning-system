@@ -63,7 +63,15 @@
     </div>
     
   <main class="container py-5">
-    <h1 class="mb-4">Market Insights Dashboard</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h1 class="mb-1">Market Insights Dashboard</h1>
+        <small class="text-white" id="last-updated">Loading data...</small>
+      </div>
+      <button class="btn btn-sm btn-outline-primary" id="refresh-btn text" onclick="refreshAllData()">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+      </button>
+    </div>
     
     <div id="assetCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
     <div class="carousel-inner">
@@ -250,6 +258,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <script src="api-client.js"></script>
     <script src="market-insights.js"></script>
   </body>
 </html>

@@ -200,16 +200,26 @@ class ApiClient {
    * ==================== MARKET METHODS ====================
    */
 
-  getMarketNews() {
-    return this.request('GET', '/market/news');
+  async getMarketNews(query = 'stock market', limit = 10) {
+    return this.request('GET', `/market/news?query=${encodeURIComponent(query)}&limit=${limit}`);
   }
 
-  getMarketTrends() {
-    return this.request('GET', '/market/trends');
+  async getMarketTrends(symbol, days = 7) {
+    return this.request('GET', `/market/trends/${symbol}?days=${days}`);
   }
 
-  getMarketTicker(symbol) {
+  async getMarketTicker(symbol) {
     return this.request('GET', `/market/ticker/${symbol}`);
+  }
+
+  async getMarketTrendingTickers() {
+    return this.request('GET', '/market/ticker/trending');
+  }
+
+  async getMultipleMarketData(symbols = [], cryptos = []) {
+    const symbolsStr = symbols.join(',');
+    const cryptosStr = cryptos.join(',');
+    return this.request('GET', `/market/multi?symbols=${symbolsStr}&cryptos=${cryptosStr}`);
   }
 
   /**
