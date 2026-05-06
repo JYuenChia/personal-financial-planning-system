@@ -107,10 +107,10 @@
       <div class="row">
         <div class="mb-3 col equal-height-col">
           <!-- Recommendations Display -->
-          <div class="card recommendationsContainer">
+          <div id="recommendationsContainer" class="card p-4 mb-4 idle-indicator"> <h5 class="mb-3 text-dark">Recommended Strategy</h5>
             <!-- Selected Strategy -->
-            <div class="p-4 mb-4">
-              <h5 class="mb-3 text-dark">Recommended Strategy</h5>
+          
+             
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <p>
@@ -176,14 +176,13 @@
               <p class="mt-3 text-muted">
                 <span id="strategyDescription"></span>
               </p>
-            </div>
+          
           </div>
         </div>
         <div class="mb-3 col equal-height-col">
           <!-- Comparison Display -->
-          <div class="card recommendationsContainer">
-            <div class="p-4 mb-4">
-              <h5 class="mb-3 text-dark">Strategy Comparison</h5>
+          <div id="comparisonContainer" class="card p-4 mb-4 idle-indicator"><h5 class="mb-3 text-dark">Strategy Comparison</h5>
+            
               <p class="text-muted">
                 Timeline: <span id="comparisonTimeline"></span> years
               </p>
@@ -204,14 +203,14 @@
                   </tbody>
                 </table>
               </div>
-            </div>
+            
           </div>
         </div>
       </div>
       <div class="row">
         <div class="col">
           <!-- Investment Growth Graph -->
-          <div class="card p-4 mb-4">
+          <div id="investmentGrowthContainer" class="card p-4 mb-4 idle-indicator">
             <h5 class="mb-3 text-dark">Investment Growth Over Time</h5>
             <canvas
               id="investmentGrowthChart"

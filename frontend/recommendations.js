@@ -74,6 +74,9 @@ document.getElementById("goalSelect").addEventListener("change", async (e) => {
     // Automatically load recommendations for the selected goal
     loadRecommendations();
     compareStrategies();
+    toggleIdleIndicator("recommendationsContainer", false);
+    toggleIdleIndicator("comparisonContainer", false);
+    toggleIdleIndicator("investmentGrowthContainer", false);
   } else {
     hideElement("emptyState");
   }
@@ -263,6 +266,22 @@ function displayComparison(data) {
     tableBody.appendChild(row);
   });
 }
+
+// Function to toggle idle indicator
+function toggleIdleIndicator(containerId, isIdle) {
+  const container = document.getElementById(containerId);
+  console.log(container[0]);
+  if (isIdle) {
+    container.classList.add("idle-indicator");
+  } else {
+    container.classList.remove("idle-indicator");
+  }
+}
+
+// Example usage: Toggle idle indicator for recommendations container
+// Call this function when the container is idle or active
+// toggleIdleIndicator("recommendationsContainer", true); // Add idle indicator
+// toggleIdleIndicator("recommendationsContainer", false); // Remove idle indicator
 
 // Import Chart.js library
 const loadChartJs = async () => {
