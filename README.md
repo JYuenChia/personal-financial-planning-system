@@ -18,7 +18,8 @@ This project is a comprehensive Personal Financial Planning System with a Node.j
 - Create a `.env` file in the `backend/` folder based on `.env.example`.
 - Fill in the following variables:
     - `MONGODB_URI`: Your MongoDB connection string.
-    - `JWT_SECRET`: A random string for token encryption.
+    - `JWT_ACCESS_SECRET`: Secret key for short-term access tokens.
+    - `JWT_REFRESH_SECRET`: Secret key for long-term refresh tokens.
     - `RAPID_API_KEY`: (Optional) Your API key from RapidAPI for market data.
 - Start the server using `npm start`.
 
