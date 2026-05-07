@@ -26,6 +26,16 @@ body.home-page {
   background-attachment: fixed;
 }
 
+/* Authentication Pages background override */
+body.auth-page {
+  background:
+    linear-gradient(rgba(31, 63, 86, 0.7), rgba(31, 63, 86, 0.7)),
+    url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
 h1,
 h2,
 h3,
