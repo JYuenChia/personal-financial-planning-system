@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post("/calculations", requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.auth.userId;
     const { title, calculation } = req.body;
 
     if (!title || !calculation) {
@@ -42,7 +42,7 @@ router.post("/calculations", requireAuth, async (req, res) => {
 
 router.get("/calculations", requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.auth.userId;
     const calculations = await calculationsRepository.listCalculations({
       userId,
     });
@@ -57,7 +57,7 @@ router.get("/calculations", requireAuth, async (req, res) => {
 
 router.delete("/calculations/:id", requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.auth.userId;
     const { id } = req.params;
 
     const calculation = await calculationsRepository.findById(id);
@@ -81,7 +81,7 @@ router.delete("/calculations/:id", requireAuth, async (req, res) => {
 
 router.delete("/calculations", requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.auth.userId;
     await calculationsRepository.deleteAllCalculations(userId);
     res.status(200).json({
       success: true,

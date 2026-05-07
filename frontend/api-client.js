@@ -235,22 +235,22 @@ class ApiClient {
   }
 
   saveCalculation(title, calculation) {
-    return this.request('POST', '/calculator/calculations', {
+    return this.request('POST', '/calculations', {
       title,
       calculation,
     });
   }
 
   getCalculations() {
-    return this.request('GET', '/calculator/calculations');
+    return this.request('GET', '/calculations');
   }
 
   deleteCalculation(id) {
-    return this.request('DELETE', `/calculator/calculations/${id}`);
+    return this.request('DELETE', `/calculations/${id}`);
   }
 
   clearAllCalculations() {
-    return this.request('DELETE', '/calculator/calculations');
+    return this.request('DELETE', '/calculations');
   }
 }
 
