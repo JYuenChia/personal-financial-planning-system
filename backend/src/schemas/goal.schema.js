@@ -1,6 +1,7 @@
 const { z } = require("zod");
 const mongoose = require("mongoose");
 
+
 const goalSchema = new mongoose.Schema(
   {
     _id: {
@@ -21,12 +22,12 @@ const goalSchema = new mongoose.Schema(
     target_amount: {
       type: Number,
       required: true,
-      min: 0.01,
+      min: [0.01, "Target amount must be positive"],
     },
     current_amount: {
       type: Number,
       required: true,
-      min: 0,
+      min: [0, "Current amount cannot be negative"],
       default: 0,
     },
     target_date: {
@@ -36,8 +37,14 @@ const goalSchema = new mongoose.Schema(
     risk_appetite: {
       type: Number,
       required: true,
-      min: 1,
-      max: 5,
+      min: [1, "Risk appetite must be at least 1"],
+      max: [5, "Risk appetite cannot exceed 5"],
+      default: 3
+    },
+    priority: {
+      type: String,
+      enum: ["Critical", "Need", "Want"],
+      default: "Need"
     },
   },
   {
@@ -48,20 +55,23 @@ const goalSchema = new mongoose.Schema(
   }
 );
 
+
 const goalCreateSchema = z.object({
-  user_id: z.string().trim().min(1).optional(),
-  title: z.string().trim().min(1).max(200),
-  target_amount: z.coerce.number().finite().positive(),
-  current_amount: z.coerce.number().finite().min(0).optional(),
+  title: z.string().trim().min(1, "Title is required").max(200),
+  target_amount: z.coerce.number().finite().positive("Target amount must be positive"),
+  current_amount: z.coerce.number().finite().min(0, "Current amount cannot be negative").default(0),
   target_date: z.coerce.date(),
-  risk_appetite: z.coerce.number().int().min(1).max(5),
+  risk_appetite: z.coerce.number().int().min(1).max(5).default(3),
+  priority: z.enum(["Critical", "Need", "Want"]).optional()
 });
+
 
 const goalUpdateSchema = goalCreateSchema
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required",
   });
+
 
 module.exports = {
   goalSchema,

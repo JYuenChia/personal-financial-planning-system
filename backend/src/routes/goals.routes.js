@@ -1,6 +1,7 @@
 const express = require("express");
 const { v4: uuidv4 } = require("uuid");
 
+
 const { requireAuth } = require("../middleware/auth.middleware");
 const { findById: findUserById } = require("../repositories/user.repository");
 const {
@@ -15,10 +16,14 @@ const {
   goalUpdateSchema,
 } = require("../schemas/goal.schema");
 
+
 const router = express.Router();
 
+
+// Helper to convert to public goal format
 function toPublicGoal(goal) {
   if (!goal) return null;
+
 
   return {
     id: goal._id,
@@ -30,175 +35,179 @@ function toPublicGoal(goal) {
       goal.target_date instanceof Date
         ? goal.target_date.toISOString()
         : goal.target_date,
+    priority: goal.priority,
     risk_appetite: goal.risk_appetite,
     created_at: goal.created_at,
     updated_at: goal.updated_at,
   };
 }
 
+
+// Helper to check access
 function canAccessGoal(auth, goal) {
   return auth.role === "admin" || goal.user_id === auth.userId;
 }
 
+
+// Helper to find and verify goal access
 async function getAccessibleGoal(req, res, goalId) {
   const goal = await findGoalById(goalId);
 
+
   if (!goal) {
-    res.status(404).json({ error: "Goal not found" });
+    res.status(404).json({ success: false, message: "Goal not found" });
     return null;
   }
 
+
   if (!canAccessGoal(req.auth, goal)) {
-    res.status(403).json({ error: "Forbidden" });
+    res.status(403).json({ success: false, message: "Forbidden" });
     return null;
   }
+
 
   return goal;
 }
 
+
+// Apply auth middleware to all goal routes
 router.use(requireAuth);
 
-router.get("/goals", async (req, res) => {
+
+// GET /api/goals -> fetch all goals belonging to logged-in user
+router.get("/", async (req, res) => {
   try {
     const goals =
       req.auth.role === "admin"
         ? await listGoals()
         : await listGoals({ userId: req.auth.userId });
 
-    return res.status(200).json({ goals: goals.map(toPublicGoal) });
+
+    return res.status(200).json({
+      success: true,
+      data: goals.map(toPublicGoal)
+    });
   } catch (error) {
     console.error("List goals error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
-router.post("/goals", async (req, res) => {
+
+// POST /api/goals -> create new goal
+router.post("/", async (req, res) => {
   try {
     const parsed = goalCreateSchema.safeParse(req.body);
 
+
     if (!parsed.success) {
-      return res.status(400).json({ error: "Invalid goal payload" });
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: parsed.error.errors.map(err => err.message)
+      });
     }
 
-    const ownerId = parsed.data.user_id || req.auth.userId;
-
-    if (
-      parsed.data.user_id &&
-      req.auth.role !== "admin" &&
-      parsed.data.user_id !== req.auth.userId
-    ) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    const owner = await findUserById(ownerId);
-
-    if (!owner) {
-      return res.status(404).json({ error: "User not found" });
-    }
 
     const goal = await createGoal({
       _id: uuidv4(),
-      user_id: ownerId,
-      title: parsed.data.title,
-      target_amount: parsed.data.target_amount,
-      current_amount: parsed.data.current_amount ?? 0,
-      target_date: parsed.data.target_date,
-      risk_appetite: parsed.data.risk_appetite,
+      user_id: req.auth.userId,
+      ...parsed.data
     });
 
-    return res.status(201).json({ goal: toPublicGoal(goal) });
+
+    return res.status(201).json({
+      success: true,
+      message: "Goal created successfully",
+      data: toPublicGoal(goal)
+    });
   } catch (error) {
     console.error("Create goal error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
-router.get("/goals/:id", async (req, res) => {
+
+// GET /api/goals/:id -> fetch specific goal
+router.get("/:id", async (req, res) => {
   try {
     const goal = await getAccessibleGoal(req, res, req.params.id);
 
-    if (!goal) {
-      return;
-    }
 
-    return res.status(200).json({ goal: toPublicGoal(goal) });
+    if (!goal) return;
+
+
+    return res.status(200).json({
+      success: true,
+      data: toPublicGoal(goal)
+    });
   } catch (error) {
     console.error("Get goal error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
-router.put("/goals/:id", async (req, res) => {
+
+// PUT /api/goals/:id -> update goal by ID
+router.put("/:id", async (req, res) => {
   try {
+    const goal = await getAccessibleGoal(req, res, req.params.id);
+    if (!goal) return;
+
+
     const parsed = goalUpdateSchema.safeParse(req.body);
 
+
     if (!parsed.success) {
-      return res.status(400).json({ error: "Invalid goal payload" });
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: parsed.error.errors.map(err => err.message)
+      });
     }
 
-    const goal = await getAccessibleGoal(req, res, req.params.id);
 
-    if (!goal) {
-      return;
-    }
+    const updated = await updateGoal(goal._id, parsed.data);
 
-    if (parsed.data.user_id && req.auth.role !== "admin") {
-      return res.status(403).json({ error: "Forbidden" });
-    }
 
-    if (parsed.data.user_id) {
-      const owner = await findUserById(parsed.data.user_id);
-
-      if (!owner) {
-        return res.status(404).json({ error: "User not found" });
-      }
-    }
-
-    const updated = await updateGoal(goal._id, {
-      ...(parsed.data.title !== undefined ? { title: parsed.data.title } : {}),
-      ...(parsed.data.target_amount !== undefined
-        ? { target_amount: parsed.data.target_amount }
-        : {}),
-      ...(parsed.data.current_amount !== undefined
-        ? { current_amount: parsed.data.current_amount }
-        : {}),
-      ...(parsed.data.target_date !== undefined
-        ? { target_date: parsed.data.target_date }
-        : {}),
-      ...(parsed.data.risk_appetite !== undefined
-        ? { risk_appetite: parsed.data.risk_appetite }
-        : {}),
-      ...(req.auth.role === "admin" && parsed.data.user_id !== undefined
-        ? { user_id: parsed.data.user_id }
-        : {}),
+    return res.status(200).json({
+      success: true,
+      message: "Goal updated successfully",
+      data: toPublicGoal(updated)
     });
-
-    return res.status(200).json({ goal: toPublicGoal(updated) });
   } catch (error) {
     console.error("Update goal error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
-router.delete("/goals/:id", async (req, res) => {
+
+// DELETE /api/goals/:id -> delete goal by ID
+router.delete("/:id", async (req, res) => {
   try {
     const goal = await getAccessibleGoal(req, res, req.params.id);
+    if (!goal) return;
 
-    if (!goal) {
-      return;
-    }
 
     const result = await deleteGoal(goal._id);
 
+
     if (!result.deletedCount) {
-      return res.status(404).json({ error: "Goal not found" });
+      return res.status(404).json({ success: false, message: "Goal not found" });
     }
 
-    return res.status(200).json({ status: "goal_deleted" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Goal deleted successfully"
+    });
   } catch (error) {
     console.error("Delete goal error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
+
 module.exports = router;
+
+

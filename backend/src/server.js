@@ -1,9 +1,13 @@
+const dns = require("dns");
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
 const { connectDB } = require("./db");
 const apiRoutes = require("./routes");
+const rapidApiClient = require("./utils/rapid-api-client");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -31,6 +35,15 @@ app.get("/", (req, res) => {
 
 async function start() {
   await connectDB();
+  
+  // Pre-fetch trend data on startup to avoid 403/429 errors
+  try {
+    await rapidApiClient.prefetchTrendingData();
+  } catch (error) {
+    console.warn("Pre-fetch error:", error.message);
+    // Continue startup even if pre-fetch fails
+  }
+  
   app.listen(port, () => {
     console.log(`Server listening on http://localhost:${port}`);
   });
